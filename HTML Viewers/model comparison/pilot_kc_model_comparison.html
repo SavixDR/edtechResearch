@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>KC Model Comparison Viewer</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --text: #182033;
+      --muted: #657086;
+      --border: #dfe5ee;
+      --accent: #4f46e5;
+      --accent-soft: #ecebff;
+      --success: #0f8a65;
+      --success-soft: #e8f7f1;
+      --warning: #b66a08;
+      --warning-soft: #fff4dd;
+      --danger: #c23b4c;
+      --danger-soft: #ffecef;
+      --info: #2768c8;
+      --info-soft: #eaf2ff;
+      --neutral: #687386;
+      --neutral-soft: #edf0f4;
+      --shadow: 0 12px 34px rgba(27, 39, 66, 0.08);
+      --sticky-offset: 88px;
+    }
+
+    html[data-theme="dark"] {
+      --bg: #0d111a;
+      --panel: #151b26;
+      --panel-2: #1a2230;
+      --text: #edf2f8;
+      --muted: #a3aec1;
+      --border: #2c3545;
+      --accent: #aaa5ff;
+      --accent-soft: #2b2851;
+      --success: #62d4ad;
+      --success-soft: #12352b;
+      --warning: #f1b75d;
+      --warning-soft: #3c2c13;
+      --danger: #ff8c9a;
+      --danger-soft: #411d25;
+      --info: #84b6ff;
+      --info-soft: #182e4d;
+      --neutral: #b4bdca;
+      --neutral-soft: #28303c;
+      --shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      backdrop-filter: blur(18px);
+    }
+    .topbar-inner {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand h1 { margin: 0; font-size: 1.23rem; line-height: 1.2; }
+    .brand p { margin: 3px 0 0; color: var(--muted); font-size: .83rem; }
+    .top-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+
+    .btn, .file-label {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 650;
+      font-size: .86rem;
+    }
+    .btn:hover, .file-label:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary, .file-label.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.danger { color: var(--danger); }
+    .btn.small { min-height: 30px; padding: 5px 9px; font-size: .77rem; }
+    input[type="file"] { display: none; }
+
+    .shell {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: var(--sticky-offset);
+      align-self: start;
+      max-height: calc(100vh - 110px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .sidebar h2 { margin: 0; font-size: 1rem; }
+    .sidebar-sub { margin: 3px 0 14px; color: var(--muted); font-size: .78rem; }
+    .group-search { width: 100%; margin-bottom: 10px; }
+    .group-list { display: grid; gap: 7px; }
+    .group-item {
+      width: 100%;
+      padding: 10px;
+      text-align: left;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      background: transparent;
+      color: var(--text);
+    }
+    .group-item:hover { background: var(--panel-2); border-color: var(--border); }
+    .group-item.active { background: var(--accent-soft); border-color: var(--accent); }
+    .group-item strong { display: block; font-size: .85rem; }
+    .group-item small { display: block; margin-top: 3px; color: var(--muted); overflow-wrap: anywhere; }
+    .group-badges { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+    .mini-badge { padding: 2px 6px; border-radius: 999px; background: var(--panel-2); color: var(--muted); font-size: .68rem; font-weight: 700; }
+
+    .main { min-width: 0; }
+    .empty-screen {
+      min-height: 62vh;
+      display: grid;
+      place-items: center;
+      padding: 30px;
+      border: 2px dashed var(--border);
+      border-radius: 20px;
+      background: var(--panel);
+      text-align: center;
+    }
+    .drop-zone {
+      width: min(700px, 100%);
+      padding: 44px 30px;
+      border: 2px dashed var(--border);
+      border-radius: 18px;
+      background: var(--panel-2);
+      transition: .18s ease;
+    }
+    .drop-zone.dragover { border-color: var(--accent); transform: translateY(-2px); background: var(--accent-soft); }
+    .drop-zone h2 { margin: 0 0 8px; }
+    .drop-zone p { margin: 0 0 18px; color: var(--muted); }
+    .privacy-note { margin-top: 14px; color: var(--muted); font-size: .78rem; }
+
+    .workspace { display: none; }
+    .workspace.visible { display: block; }
+    .hero {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .hero-top { display: flex; gap: 18px; align-items: flex-start; justify-content: space-between; }
+    .eyebrow { margin: 0 0 4px; color: var(--accent); font-size: .76rem; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+    .hero h2 { margin: 0; font-size: clamp(1.3rem, 3vw, 2rem); line-height: 1.18; overflow-wrap: anywhere; }
+    .hero .conversation-id { margin: 5px 0 0; color: var(--muted); font-size: .82rem; overflow-wrap: anywhere; }
+    .hero-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .stats-grid { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 9px; }
+    .stat-card { padding: 11px 13px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-2); }
+    .stat-card span { display: block; color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .stat-card strong { display: block; margin-top: 2px; font-size: 1.05rem; }
+
+    .alert-stack { margin-top: 12px; display: grid; gap: 8px; }
+    .alert { padding: 10px 12px; border-radius: 10px; border: 1px solid; font-size: .82rem; }
+    .alert.warning { color: var(--warning); background: var(--warning-soft); border-color: color-mix(in srgb, var(--warning) 35%, transparent); }
+    .alert.danger { color: var(--danger); background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+
+    .tabs { margin: 16px 0 0; display: flex; gap: 7px; flex-wrap: wrap; }
+    .tab-btn { padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); color: var(--muted); font-weight: 750; }
+    .tab-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .tab-panel { display: none; margin-top: 14px; }
+    .tab-panel.active { display: block; }
+
+    .toolbar-panel {
+      position: sticky;
+      top: var(--sticky-offset);
+      z-index: 25;
+      margin-bottom: 12px;
+      padding: 11px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+    .control { min-height: 36px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--panel); color: var(--text); }
+    .search-input { min-width: 250px; flex: 1 1 260px; }
+    .model-toggles { display: flex; gap: 5px; flex-wrap: wrap; }
+    .model-toggle { display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 9px; background: var(--panel); font-size: .78rem; }
+
+    .matrix-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 15px; background: var(--panel); box-shadow: var(--shadow); }
+    .matrix { width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0; }
+    .matrix th, .matrix td { vertical-align: top; padding: 11px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .matrix tr:last-child td { border-bottom: 0; }
+    .matrix th:last-child, .matrix td:last-child { border-right: 0; }
+    .matrix thead th { position: sticky; top: 0; z-index: 8; background: var(--panel-2); text-align: left; }
+    .matrix .kc-col { position: sticky; left: 0; z-index: 7; width: 265px; min-width: 265px; background: var(--panel); }
+    .matrix thead .kc-col { z-index: 12; background: var(--panel-2); }
+    .kc-id { font-weight: 850; color: var(--accent); overflow-wrap: anywhere; }
+    .agreement-line { margin-top: 5px; color: var(--muted); font-size: .73rem; }
+    .agreement-line.good { color: var(--success); }
+    .agreement-line.bad { color: var(--danger); }
+
+    .model-head { min-width: 280px; }
+    .model-head strong { display: block; font-size: .9rem; overflow-wrap: anywhere; }
+    .model-head small { color: var(--muted); }
+    .model-meta { margin-top: 6px; display: flex; gap: 5px; flex-wrap: wrap; }
+
+    .result-cell { min-width: 280px; }
+    .missing-cell { color: var(--muted); font-size: .82rem; padding: 14px 5px; }
+    .error-cell { padding: 10px; border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); border-radius: 10px; background: var(--danger-soft); color: var(--danger); font-size: .8rem; }
+    .label-entry + .label-entry { margin-top: 9px; padding-top: 9px; border-top: 1px dashed var(--border); }
+    .entry-top { display: flex; gap: 7px; align-items: center; justify-content: space-between; }
+    .status-pill { display: inline-flex; align-items: center; padding: 4px 7px; border-radius: 999px; font-size: .69rem; font-weight: 850; text-transform: capitalize; white-space: nowrap; }
+    .status-resolved_understanding { color: var(--success); background: var(--success-soft); }
+    .status-difficulty_evidence, .status-misconception { color: var(--danger); background: var(--danger-soft); }
+    .status-information_seeking { color: var(--info); background: var(--info-soft); }
+    .status-neutral_mention, .status-insufficient_evidence, .status-unknown { color: var(--neutral); background: var(--neutral-soft); }
+    .confidence { color: var(--muted); font-size: .74rem; font-weight: 750; }
+    .confidence-track { height: 5px; margin: 7px 0; border-radius: 99px; background: var(--border); overflow: hidden; }
+    .confidence-bar { height: 100%; background: var(--accent); }
+    .note { margin: 7px 0 0; font-size: .8rem; }
+    details { margin-top: 7px; border: 1px solid var(--border); border-radius: 9px; background: var(--panel-2); }
+    summary { padding: 7px 9px; cursor: pointer; color: var(--muted); font-size: .76rem; font-weight: 750; }
+    .evidence-list { margin: 0; padding: 0 12px 10px 29px; }
+    .evidence-list li { margin-top: 7px; font-size: .77rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+    .review-box { margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--border); }
+    .review-box label { display: block; color: var(--muted); font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+    .review-box select, .review-box textarea { width: 100%; margin-top: 4px; }
+    .review-box textarea { min-height: 68px; resize: vertical; }
+
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+    .model-card, .panel-card { padding: 15px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); }
+    .model-card h3, .panel-card h3 { margin: 0; font-size: 1rem; }
+    .model-card .sub, .panel-card .sub { margin: 3px 0 12px; color: var(--muted); font-size: .77rem; }
+    .kv-list { display: grid; gap: 7px; }
+    .kv-row { display: flex; gap: 12px; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px dashed var(--border); font-size: .8rem; }
+    .kv-row span { color: var(--muted); }
+    .flags { margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap; }
+    .flag { padding: 3px 7px; border-radius: 999px; color: var(--warning); background: var(--warning-soft); font-size: .68rem; font-weight: 800; }
+
+    .pairwise-table { width: 100%; border-collapse: collapse; }
+    .pairwise-table th, .pairwise-table td { padding: 8px 10px; border: 1px solid var(--border); text-align: center; font-size: .8rem; }
+    .pairwise-table th { background: var(--panel-2); }
+
+    .raw-record { margin-top: 10px; }
+    pre { max-width: 100%; overflow: auto; padding: 12px; border-radius: 9px; background: #0c1220; color: #e7edf8; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .73rem; }
+
+    .review-summary { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
+    .review-summary textarea { min-height: 110px; width: 100%; }
+
+    .hidden { display: none !important; }
+    .footer { max-width: 1800px; margin: 0 auto; padding: 0 20px 25px; text-align: center; color: var(--muted); font-size: .76rem; }
+
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 1fr; padding: 12px; }
+      .sidebar { position: static; max-height: none; }
+      .group-list { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .topbar-inner, .hero-top { align-items: stretch; flex-direction: column; }
+      .top-actions, .hero-controls { justify-content: flex-start; }
+      :root { --sticky-offset: 0px; }
+      .toolbar-panel { position: static; }
+    }
+
+    @media print {
+      .topbar, .sidebar, .toolbar-panel, .tabs, .review-box, .footer { display: none !important; }
+      .shell { display: block; max-width: none; padding: 0; }
+      .workspace, .tab-panel { display: block !important; }
+      .matrix-wrap { overflow: visible; box-shadow: none; }
+      .matrix { min-width: 0; }
+      .matrix thead th, .matrix .kc-col { position: static; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <h1>KC Model Comparison Viewer</h1>
+      <p>Align and manually review KC labels across teacher models</p>
+    </div>
+    <div class="top-actions">
+      <label class="file-label primary" for="fileInput">Open JSONL / JSON</label>
+      <input id="fileInput" type="file" accept=".json,.jsonl,.ndjson,.txt,application/json">
+      <button class="btn" id="exportReviewBtn" type="button">Export review JSON</button>
+      <button class="btn" id="exportCsvBtn" type="button">Export matrix CSV</button>
+      <label class="file-label" for="reviewImportInput">Import review</label>
+      <input id="reviewImportInput" type="file" accept=".json,application/json">
+      <button class="btn" id="themeBtn" type="button">Dark theme</button>
+      <button class="btn danger" id="resetBtn" type="button">Reset</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar">
+    <h2>Conversation groups</h2>
+    <p class="sidebar-sub" id="datasetSummary">No dataset loaded</p>
+    <input id="groupSearch" class="control group-search" type="search" placeholder="Filter conversations…">
+    <div id="groupList" class="group-list"></div>
+  </aside>
+
+  <main class="main">
+    <section id="emptyScreen" class="empty-screen">
+      <div id="dropZone" class="drop-zone">
+        <h2>Upload a model-output JSONL file</h2>
+        <p>Results are grouped by <strong>assignment_id + conversation_id</strong>, then aligned by <strong>kc_id</strong>.</p>
+        <label class="file-label primary" for="fileInput">Choose file</label>
+        <div class="privacy-note">Everything runs locally in your browser. The file is not uploaded to a server.</div>
+      </div>
+    </section>
+
+    <section id="workspace" class="workspace">
+      <div class="hero">
+        <div class="hero-top">
+          <div>
+            <p class="eyebrow" id="assignmentLabel">Assignment</p>
+            <h2 id="conversationTitle">Conversation</h2>
+            <p class="conversation-id" id="conversationMeta"></p>
+          </div>
+          <div class="hero-controls">
+            <button class="btn small" id="prevGroupBtn" type="button">Previous</button>
+            <button class="btn small" id="nextGroupBtn" type="button">Next</button>
+            <button class="btn small" id="printBtn" type="button">Print / PDF</button>
+          </div>
+        </div>
+        <div id="statsGrid" class="stats-grid"></div>
+        <div id="alertStack" class="alert-stack"></div>
+      </div>
+
+      <nav class="tabs" aria-label="Comparison sections">
+        <button class="tab-btn active" data-tab="matrixPanel" type="button">KC comparison</button>
+        <button class="tab-btn" data-tab="modelsPanel" type="button">Model summaries</button>
+        <button class="tab-btn" data-tab="agreementPanel" type="button">Agreement analysis</button>
+        <button class="tab-btn" data-tab="rawPanel" type="button">Raw records</button>
+        <button class="tab-btn" data-tab="reviewPanel" type="button">Conversation review</button>
+      </nav>
+
+      <section id="matrixPanel" class="tab-panel active">
+        <div class="toolbar-panel">
+          <input id="kcSearch" class="control search-input" type="search" placeholder="Search KC IDs, evidence, notes…">
+          <select id="coverageFilter" class="control">
+            <option value="all">All KC rows</option>
+            <option value="disagreement">Status disagreement</option>
+            <option value="missing">Missing from ≥1 model</option>
+            <option value="unanimous">Unanimous status</option>
+            <option value="intersection">Present in every selected model</option>
+          </select>
+          <select id="reviewFilter" class="control">
+            <option value="all">All review states</option>
+            <option value="unreviewed">Unreviewed</option>
+            <option value="accepted">Accepted</option>
+            <option value="needs_review">Needs review</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <label class="model-toggle"><input id="expandEvidence" type="checkbox"> Expand evidence</label>
+          <div id="modelToggles" class="model-toggles"></div>
+        </div>
+        <div class="matrix-wrap">
+          <table class="matrix">
+            <thead id="matrixHead"></thead>
+            <tbody id="matrixBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="modelsPanel" class="tab-panel">
+        <div id="modelCards" class="cards-grid"></div>
+      </section>
+
+      <section id="agreementPanel" class="tab-panel">
+        <div class="cards-grid">
+          <article class="panel-card">
+            <h3>Pairwise KC-set agreement</h3>
+            <p class="sub">Jaccard similarity = intersection ÷ union of unique KC IDs.</p>
+            <div id="jaccardTable"></div>
+          </article>
+          <article class="panel-card">
+            <h3>Status agreement</h3>
+            <p class="sub">Calculated only where at least two selected models label the same KC.</p>
+            <div id="statusAgreementSummary"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="rawPanel" class="tab-panel">
+        <div id="rawRecords"></div>
+      </section>
+
+      <section id="reviewPanel" class="tab-panel">
+        <article class="panel-card">
+          <h3>Conversation-level reviewer notes</h3>
+          <p class="sub">Saved automatically in this browser and included in exported review JSON.</p>
+          <div class="review-summary">
+            <textarea id="conversationReviewNotes" class="control" placeholder="Overall observations, preferred model, recurring errors, adjudication notes…"></textarea>
+            <div>
+              <label for="preferredModel" class="sidebar-sub">Preferred model for this conversation</label>
+              <select id="preferredModel" class="control"><option value="">Not selected</option></select>
+            </div>
+          </div>
+        </article>
+      </section>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">Standalone local viewer · Review data stays in browser storage unless you export it.</footer>
+
+<script>
+const EMBEDDED_JSONL = {"filename": "pilot_comparison_outputs(1).jsonl", "text": "{\"model\": \"gpt-5.6-sol\", \"conversation_id\": \"00078d7c-022c-429b-9e07-33459b7a5f6e\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-sol::00078d7c-022c-429b-9e07-33459b7a5f6e::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"00078d7c-022c-429b-9e07-33459b7a5f6e\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [{\"kc_id\": \"f24_a2_KC_006\", \"status\": \"resolved_understanding\", \"confidence\": 0.95, \"evidence\": [\"def build_tree(self, document):\", \"BFS on the tree I created\"], \"note\": \"The student implements and explicitly identifies a constructed autocomplete tree.\"}, {\"kc_id\": \"f24_a2_KC_007\", \"status\": \"resolved_understanding\", \"confidence\": 0.94, \"evidence\": [\"if char in node.children: node = node.children[char]\", \"else: new_node = Node()\"], \"note\": \"The insertion logic reuses shared-prefix nodes and creates branches only when needed.\"}, {\"kc_id\": \"f24_a2_KC_008\", \"status\": \"resolved_understanding\", \"confidence\": 0.99, \"evidence\": [\"for word in document.split():\"], \"note\": \"The student splits the document into individual words before insertion.\"}, {\"kc_id\": \"f24_a2_KC_009\", \"status\": \"resolved_understanding\", \"confidence\": 0.98, \"evidence\": [\"for index, char in enumerate(word):\", \"node.children[char] = new_node\"], \"note\": \"The student correctly inserts character paths by reusing or creating child nodes.\"}, {\"kc_id\": \"f24_a2_KC_010\", \"status\": \"resolved_understanding\", \"confidence\": 0.98, \"evidence\": [\"self.end = False\", \"if (index == word_length - 1): node.end = True\"], \"note\": \"The student implements an end-of-word attribute and marks the terminal node.\"}, {\"kc_id\": \"f24_a2_KC_022\", \"status\": \"information_seeking\", \"confidence\": 0.92, \"evidence\": [\"def suggest_bfs(self, prefix): pass\", \"BFS on the tree I created\"], \"note\": \"The student requests help implementing the BFS autocomplete method.\"}, {\"kc_id\": \"f24_a2_KC_052\", \"status\": \"resolved_understanding\", \"confidence\": 0.99, \"evidence\": [\"for index, char in enumerate(word):\"], \"note\": \"The student correctly iterates over the characters and positions in each word.\"}, {\"kc_id\": \"f24_a2_KC_053\", \"status\": \"resolved_understanding\", \"confidence\": 0.99, \"evidence\": [\"Python dictionary check if key exists\", \"if char in node.children:\"], \"note\": \"After seeking help, the student correctly uses dictionary membership and lookup.\"}, {\"kc_id\": \"f24_a2_KC_054\", \"status\": \"resolved_understanding\", \"confidence\": 0.97, \"evidence\": [\"self.children = {}\", \"node.end = True\"], \"note\": \"The student correctly defines, accesses, and updates node attributes.\"}], \"flags\": [\"possible_academic_integrity_issue\"], \"_custom_id\": \"gpt-5.6-sol::00078d7c-022c-429b-9e07-33459b7a5f6e::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-sol\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 14695, \"input_tokens_details\": {\"cache_write_tokens\": 14692, \"cached_tokens\": 0}, \"output_tokens\": 1584, \"output_tokens_details\": {\"reasoning_tokens\": 985}, \"total_tokens\": 16279}, \"raw_response_id\": \"resp_08d07d20708e8970016a547ec429d08199ade10b0498b90b35\", \"api_error\": null}\n{\"model\": \"gpt-5.6-sol\", \"conversation_id\": \"000c7c9c-0e5f-41dd-87d7-60c397624745\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-sol::000c7c9c-0e5f-41dd-87d7-60c397624745::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"000c7c9c-0e5f-41dd-87d7-60c397624745\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [], \"flags\": [\"no_relevant_kc_evidence\"], \"_custom_id\": \"gpt-5.6-sol::000c7c9c-0e5f-41dd-87d7-60c397624745::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-sol\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 12845, \"input_tokens_details\": {\"cache_write_tokens\": 12842, \"cached_tokens\": 0}, \"output_tokens\": 70, \"output_tokens_details\": {\"reasoning_tokens\": 0}, \"total_tokens\": 12915}, \"raw_response_id\": \"resp_0094f96b50f4f841016a547edbc508819bb471d4eb00e200ed\", \"api_error\": null}\n{\"model\": \"gpt-5.6-sol\", \"conversation_id\": \"0079c75e-2009-4d02-aae0-9d2f8c6f6f56\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-sol::0079c75e-2009-4d02-aae0-9d2f8c6f6f56::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"0079c75e-2009-4d02-aae0-9d2f8c6f6f56\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [{\"kc_id\": \"f24_a2_KC_001\", \"status\": \"neutral_mention\", \"confidence\": 0.84, \"evidence\": [\"Implements the Breadth-First Search (BFS) algorithm on the tree.\", \"Finds all words in the tree that start with the prefix.\"], \"note\": \"Explicitly frames autocomplete as searching a tree for prefix-based completions.\"}, {\"kc_id\": \"f24_a2_KC_002\", \"status\": \"neutral_mention\", \"confidence\": 0.98, \"evidence\": [\"Start from the node that corresponds to the last character of the prefix.\"], \"note\": \"Explicitly identifies the prefix endpoint as the search start node.\"}, {\"kc_id\": \"f24_a2_KC_005\", \"status\": \"neutral_mention\", \"confidence\": 0.88, \"evidence\": [\"Finds all words in the tree that start with the prefix.\", \"Using BFS traverse the sub tree and build a list of suggestions.\"], \"note\": \"Explicitly describes collecting multiple autocomplete results.\"}, {\"kc_id\": \"f24_a2_KC_022\", \"status\": \"insufficient_evidence\", \"confidence\": 0.82, \"evidence\": [\"2. TODO: suggest_bfs(prefix)\", \"Using BFS traverse the sub tree and build a list of suggestions.\"], \"note\": \"Names the BFS implementation task but provides no student implementation or specific difficulty.\"}], \"flags\": [\"mostly_code_generation_request\", \"requires_code_or_output_not_present\"], \"_custom_id\": \"gpt-5.6-sol::0079c75e-2009-4d02-aae0-9d2f8c6f6f56::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-sol\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 13188, \"input_tokens_details\": {\"cache_write_tokens\": 13185, \"cached_tokens\": 0}, \"output_tokens\": 1296, \"output_tokens_details\": {\"reasoning_tokens\": 950}, \"total_tokens\": 14484}, \"raw_response_id\": \"resp_087e17ce5aa41e64016a547eddbe0481989c4ef93877da2046\", \"api_error\": null}\n{\"model\": \"gpt-5.6-sol\", \"conversation_id\": \"00f9ebab-7e4c-471a-8623-523812e2bd4d\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-sol::00f9ebab-7e4c-471a-8623-523812e2bd4d::chunk_001_of_001\", \"parsed\": null, \"validation_errors\": [\"JSON parse error: Unterminated string starting at: line 1 column 4025 (char 4024)\", \"{\\\"conversation_id\\\":\\\"00f9ebab-7e4c-471a-8623-523812e2bd4d\\\",\\\"chunk_id\\\":\\\"chunk_001_of_001\\\",\\\"assignment_id\\\":\\\"f24_a2\\\",\\\"labels\\\":[{\\\"kc_id\\\":\\\"f24_a2_KC_006\\\",\\\"status\\\":\\\"resolved_understanding\\\",\\\"confidence\\\":0.94,\\\"evidence\\\":[\\\"Splits the document into individual words.\\\\nInserts each word into a tree (prefix tree) data structure.\\\"],\\\"note\\\":\\\"The student explicitly describes and implements construction of a character-based prefix tree.\\\"},{\\\"kc_id\\\":\\\"f24_a2_KC_009\\\",\\\"status\\\":\\\"resolved_understanding\\\",\\\"confidence\\\":0.98,\\\"evidence\\\":[\\\"if char not in node.children:\\\\n node.children[char] = Node()\\\\nnode = node.children[char]\\\"],\\\"note\\\":\\\"The final code creates missing child nodes and advances along each character path.\\\"},{\\\"kc_id\\\":\\\"f24_a2_KC_010\\\",\\\"status\\\":\\\"resolved_understanding\\\",\\\"confidence\\\":0.98,\\\"evidence\\\":[\\\"node.is_end_of_word =True #marks end of a word\\\"],\\\"note\\\":\\\"The student marks the final node of each inserted word as terminal.\\\"},{\\\"kc_id\\\":\\\"f24_a2_KC_013\\\",\\\"status\\\":\\\"resolved_understanding\\\",\\\"confidence\\\":0.98,\\\"evidenc\"], \"usage\": {\"input_tokens\": 33042, \"input_tokens_details\": {\"cache_write_tokens\": 33039, \"cached_tokens\": 0}, \"output_tokens\": 3000, \"output_tokens_details\": {\"reasoning_tokens\": 1975}, \"total_tokens\": 36042}, \"raw_response_id\": \"resp_0ea0bfbdde0cf4a2016a547ef3b72c819aadadbfd42374b34f\", \"api_error\": null}\n{\"model\": \"gpt-5.6-sol\", \"conversation_id\": \"010e3841-3b59-4817-93e5-5cce0da9c676\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-sol::010e3841-3b59-4817-93e5-5cce0da9c676::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"010e3841-3b59-4817-93e5-5cce0da9c676\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [], \"flags\": [\"no_relevant_kc_evidence\"], \"_custom_id\": \"gpt-5.6-sol::010e3841-3b59-4817-93e5-5cce0da9c676::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-sol\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 13951, \"input_tokens_details\": {\"cache_write_tokens\": 13948, \"cached_tokens\": 0}, \"output_tokens\": 185, \"output_tokens_details\": {\"reasoning_tokens\": 113}, \"total_tokens\": 14136}, \"raw_response_id\": \"resp_0471c1fae8135763016a547f222ff081999e1bc836932cc8a3\", \"api_error\": null}\n{\"model\": \"gpt-5.6-terra\", \"conversation_id\": \"00078d7c-022c-429b-9e07-33459b7a5f6e\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-terra::00078d7c-022c-429b-9e07-33459b7a5f6e::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"00078d7c-022c-429b-9e07-33459b7a5f6e\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [{\"kc_id\": \"f24_a2_KC_008\", \"status\": \"resolved_understanding\", \"confidence\": 0.94, \"evidence\": [\"for word in document.split():\"], \"note\": \"Student splits the document into individual words before insertion.\"}, {\"kc_id\": \"f24_a2_KC_009\", \"status\": \"resolved_understanding\", \"confidence\": 0.96, \"evidence\": [\"if char in node.children:\", \"node.children[char] = new_node\"], \"note\": \"Student's code reuses existing child nodes and creates missing character nodes.\"}, {\"kc_id\": \"f24_a2_KC_010\", \"status\": \"resolved_understanding\", \"confidence\": 0.96, \"evidence\": [\"self.end = False\", \"node.end = True\"], \"note\": \"Student implements a terminal marker and sets it after reaching the final character.\"}, {\"kc_id\": \"f24_a2_KC_052\", \"status\": \"resolved_understanding\", \"confidence\": 0.93, \"evidence\": [\"for index, char in enumerate(word):\"], \"note\": \"Student iterates over the characters of each parsed word.\"}, {\"kc_id\": \"f24_a2_KC_053\", \"status\": \"resolved_understanding\", \"confidence\": 0.97, \"evidence\": [\"Python dictionary check if key exists\", \"if char in node.children:\"], \"note\": \"Student asks about and correctly uses dictionary membership to check child keys.\"}, {\"kc_id\": \"f24_a2_KC_054\", \"status\": \"resolved_understanding\", \"confidence\": 0.9, \"evidence\": [\"self.end = False\", \"node.end = True\"], \"note\": \"Student defines and updates an object attribute for node metadata.\"}], \"flags\": [\"mostly_code_generation_request\"], \"_custom_id\": \"gpt-5.6-terra::00078d7c-022c-429b-9e07-33459b7a5f6e::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-terra\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 14695, \"input_tokens_details\": {\"cache_write_tokens\": 14692, \"cached_tokens\": 0}, \"output_tokens\": 764, \"output_tokens_details\": {\"reasoning_tokens\": 369}, \"total_tokens\": 15459}, \"raw_response_id\": \"resp_0524f8a62215fef1016a547f2890c48198afddb382f6fac8e4\", \"api_error\": null}\n{\"model\": \"gpt-5.6-terra\", \"conversation_id\": \"000c7c9c-0e5f-41dd-87d7-60c397624745\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-terra::000c7c9c-0e5f-41dd-87d7-60c397624745::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"000c7c9c-0e5f-41dd-87d7-60c397624745\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [], \"flags\": [\"no_relevant_kc_evidence\"], \"_custom_id\": \"gpt-5.6-terra::000c7c9c-0e5f-41dd-87d7-60c397624745::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-terra\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 12845, \"input_tokens_details\": {\"cache_write_tokens\": 12842, \"cached_tokens\": 0}, \"output_tokens\": 109, \"output_tokens_details\": {\"reasoning_tokens\": 37}, \"total_tokens\": 12954}, \"raw_response_id\": \"resp_0b755385954aacfb016a547f30293c819ab8cb3fe7999c8fd4\", \"api_error\": null}\n{\"model\": \"gpt-5.6-terra\", \"conversation_id\": \"0079c75e-2009-4d02-aae0-9d2f8c6f6f56\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-terra::0079c75e-2009-4d02-aae0-9d2f8c6f6f56::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"0079c75e-2009-4d02-aae0-9d2f8c6f6f56\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [], \"flags\": [\"no_relevant_kc_evidence\", \"mostly_code_generation_request\"], \"_custom_id\": \"gpt-5.6-terra::0079c75e-2009-4d02-aae0-9d2f8c6f6f56::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-terra\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 13188, \"input_tokens_details\": {\"cache_write_tokens\": 13185, \"cached_tokens\": 0}, \"output_tokens\": 345, \"output_tokens_details\": {\"reasoning_tokens\": 265}, \"total_tokens\": 13533}, \"raw_response_id\": \"resp_02d08e243acab486016a547f322534819a98c333514e2c17a7\", \"api_error\": null}\n{\"model\": \"gpt-5.6-terra\", \"conversation_id\": \"00f9ebab-7e4c-471a-8623-523812e2bd4d\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-terra::00f9ebab-7e4c-471a-8623-523812e2bd4d::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"00f9ebab-7e4c-471a-8623-523812e2bd4d\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [{\"kc_id\": \"f24_a2_KC_008\", \"status\": \"resolved_understanding\", \"confidence\": 0.93, \"evidence\": [\"\\\"for word in document.split():\\\"\"], \"note\": \"The student splits the document into individual words before insertion.\"}, {\"kc_id\": \"f24_a2_KC_009\", \"status\": \"resolved_understanding\", \"confidence\": 0.94, \"evidence\": [\"\\\"if char not in node.children:\\\",\\\"node = node.children[char]\\\"\"], \"note\": \"The student implements character-by-character trie insertion with child reuse.\"}, {\"kc_id\": \"f24_a2_KC_010\", \"status\": \"resolved_understanding\", \"confidence\": 0.91, \"evidence\": [\"\\\"self.is_end_of_word = False\\\",\\\"node.is_end_of_word =True\\\"\"], \"note\": \"The student adds and sets an explicit terminal-word marker.\"}, {\"kc_id\": \"f24_a2_KC_013\", \"status\": \"resolved_understanding\", \"confidence\": 0.93, \"evidence\": [\"\\\"for char in prefix:\\\",\\\"else:\\\\n return [] #this would mean prefix not found\\\"\"], \"note\": \"The code traverses to the prefix endpoint and safely handles an absent prefix.\"}, {\"kc_id\": \"f24_a2_KC_014\", \"status\": \"information_seeking\", \"confidence\": 0.96, \"evidence\": [\"\\\"what differences can I expect to see in my output with bfs, dfs, and ucs\\\"\"], \"note\": \"The student explicitly asks how the three search strategies differ.\"}, {\"kc_id\": \"f24_a2_KC_019\", \"status\": \"information_seeking\", \"confidence\": 0.95, \"evidence\": [\"\\\"what differences can I expect to see in my output with bfs, dfs, and ucs\\\"\", \"\\\"Explain here what differences did you see in the suggestions generated when you used BFS vs DFS vs UCS.\\\"\"], \"note\": \"The student seeks help comparing algorithm-specific suggestion orders.\"}, {\"kc_id\": \"f24_a2_KC_022\", \"status\": \"resolved_understanding\", \"confidence\": 0.92, \"evidence\": [\"\\\"queue = deque([(node, prefix)])\\\",\\\"current_node, current_prefix = queue.popleft()\\\"\"], \"note\": \"The student implements BFS with a FIFO deque frontier.\"}, {\"kc_id\": \"f24_a2_KC_024\", \"status\": \"resolved_understanding\", \"confidence\": 0.94, \"evidence\": [\"\\\"#dfs implementation with stack\\\",\\\"current_node, current_prefix = stack.pop()\\\"\"], \"note\": \"The student implements DFS with an explicit LIFO stack.\"}, {\"kc_id\": \"f24_a2_KC_025\", \"status\": \"information_seeking\", \"confidence\": 0.95, \"evidence\": [\"\\\"help me articulate the difference between recursive DFS VS stack-based DFS. I personally picked stack based because I was more used to it\\\"\"], \"note\": \"The student asks to distinguish recursive and stack-based DFS and states their implementation choice.\"}, {\"kc_id\": \"f24_a2_KC_027\", \"status\": \"resolved_understanding\", \"confidence\": 0.91, \"evidence\": [\"\\\"stack.append((child_node, current_prefix + char))\\\",\\\"that worked. Thank you!\\\"\"], \"note\": \"After correcting Node-plus-string path construction, the student reports the DFS fix worked.\"}, {\"kc_id\": \"f24_a2_KC_030\", \"status\": \"misconception\", \"confidence\": 0.88, \"evidence\": [\"\\\"for char in word:\\\\n if char in self.char_frequencies:\\\",\\\"something is wrong with the frequencies and the build tree portion\\\"\"], \"note\": \"The code counts overall character occurrences, rather than storing frequencies for character transitions needed to assign UCS edge costs.\"}, {\"kc_id\": \"f24_a2_KC_032\", \"status\": \"neutral_mention\", \"confidence\": 0.89, \"evidence\": [\"\\\"node.path_cost = 1/freq\\\"\"], \"note\": \"The student implements inverse-frequency cost assignment.\"}, {\"kc_id\": \"f24_a2_KC_033\", \"status\": \"resolved_understanding\", \"confidence\": 0.9, \"evidence\": [\"\\\"current_cost + child_node.path_cost\\\"\"], \"note\": \"The UCS code accumulates path cost by adding each child transition cost.\"}, {\"kc_id\": \"f24_a2_KC_034\", \"status\": \"difficulty_evidence\", \"confidence\": 0.99, \"evidence\": [\"\\\"TypeError: '<' not supported between instances of 'Node' and 'Node'\\\"\", \"\\\"now this\\\"\"], \"note\": \"The student encounters a heap tie-comparison error caused by priority-queue entries containing Node objects.\"}, {\"kc_id\": \"f24_a2_KC_044\", \"status\": \"information_seeking\", \"confidence\": 0.93, \"evidence\": [\"\\\"can you please help me write a short intuition for the code behind this project\\\"\"], \"note\": \"The student requests help explaining the implementation logic.\"}], \"flags\": [], \"_custom_id\": \"gpt-5.6-terra::00f9ebab-7e4c-471a-8623-523812e2bd4d::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-terra\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 33042, \"input_tokens_details\": {\"cache_write_tokens\": 33039, \"cached_tokens\": 0}, \"output_tokens\": 1850, \"output_tokens_details\": {\"reasoning_tokens\": 812}, \"total_tokens\": 34892}, \"raw_response_id\": \"resp_077e8685b18f758e016a547f3956fc8199bd5ea29e364c96c2\", \"api_error\": null}\n{\"model\": \"gpt-5.6-terra\", \"conversation_id\": \"010e3841-3b59-4817-93e5-5cce0da9c676\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-terra::010e3841-3b59-4817-93e5-5cce0da9c676::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"010e3841-3b59-4817-93e5-5cce0da9c676\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [], \"flags\": [\"no_relevant_kc_evidence\"], \"_custom_id\": \"gpt-5.6-terra::010e3841-3b59-4817-93e5-5cce0da9c676::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-terra\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 13951, \"input_tokens_details\": {\"cache_write_tokens\": 13948, \"cached_tokens\": 0}, \"output_tokens\": 150, \"output_tokens_details\": {\"reasoning_tokens\": 78}, \"total_tokens\": 14101}, \"raw_response_id\": \"resp_0b8d3943bd57082a016a547f4a21a4819a845f5d5f27d12716\", \"api_error\": null}\n{\"model\": \"gpt-5.6-luna\", \"conversation_id\": \"00078d7c-022c-429b-9e07-33459b7a5f6e\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-luna::00078d7c-022c-429b-9e07-33459b7a5f6e::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"00078d7c-022c-429b-9e07-33459b7a5f6e\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [{\"kc_id\": \"f24_a2_KC_008\", \"status\": \"neutral_mention\", \"confidence\": 0.99, \"evidence\": [\"for word in document.split()\"], \"note\": \"The student splits the document into individual words before insertion.\"}, {\"kc_id\": \"f24_a2_KC_009\", \"status\": \"neutral_mention\", \"confidence\": 0.99, \"evidence\": [\"if char in node.children:\", \"node.children[char] = new_node\"], \"note\": \"The student reuses existing child nodes or creates new character nodes during insertion.\"}, {\"kc_id\": \"f24_a2_KC_010\", \"status\": \"neutral_mention\", \"confidence\": 0.98, \"evidence\": [\"node.end = True\"], \"note\": \"The student marks the node at the end of each word as a completed entry.\"}, {\"kc_id\": \"f24_a2_KC_021\", \"status\": \"information_seeking\", \"confidence\": 0.96, \"evidence\": [\"BFS on the tree I created\"], \"note\": \"The student requests help implementing autocomplete search using BFS.\"}, {\"kc_id\": \"f24_a2_KC_052\", \"status\": \"neutral_mention\", \"confidence\": 0.99, \"evidence\": [\"for index, char in enumerate(word):\"], \"note\": \"The student iterates over the characters of each word.\"}, {\"kc_id\": \"f24_a2_KC_053\", \"status\": \"information_seeking\", \"confidence\": 0.99, \"evidence\": [\"Python dictionary check if key exists\", \"if char in node.children:\"], \"note\": \"The student explicitly asks how to check dictionary membership and uses a key-membership check in the tree code.\"}], \"flags\": [], \"_custom_id\": \"gpt-5.6-luna::00078d7c-022c-429b-9e07-33459b7a5f6e::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-luna\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 14695, \"input_tokens_details\": {\"cache_write_tokens\": 14692, \"cached_tokens\": 0}, \"output_tokens\": 1428, \"output_tokens_details\": {\"reasoning_tokens\": 1034}, \"total_tokens\": 16123}, \"raw_response_id\": \"resp_0bad74622f3012bb016a547f4ce60c819a90bac5de179be496\", \"api_error\": null}\n{\"model\": \"gpt-5.6-luna\", \"conversation_id\": \"000c7c9c-0e5f-41dd-87d7-60c397624745\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-luna::000c7c9c-0e5f-41dd-87d7-60c397624745::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"000c7c9c-0e5f-41dd-87d7-60c397624745\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [], \"flags\": [\"no_relevant_kc_evidence\"], \"_custom_id\": \"gpt-5.6-luna::000c7c9c-0e5f-41dd-87d7-60c397624745::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-luna\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 12845, \"input_tokens_details\": {\"cache_write_tokens\": 12842, \"cached_tokens\": 0}, \"output_tokens\": 95, \"output_tokens_details\": {\"reasoning_tokens\": 23}, \"total_tokens\": 12940}, \"raw_response_id\": \"resp_03df87709632523a016a547f574000819bb9f689707927d3b3\", \"api_error\": null}\n{\"model\": \"gpt-5.6-luna\", \"conversation_id\": \"0079c75e-2009-4d02-aae0-9d2f8c6f6f56\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-luna::0079c75e-2009-4d02-aae0-9d2f8c6f6f56::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"0079c75e-2009-4d02-aae0-9d2f8c6f6f56\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [{\"kc_id\": \"f24_a2_KC_001\", \"status\": \"neutral_mention\", \"confidence\": 0.86, \"evidence\": [\"Implements the Breadth-First Search (BFS) algorithm on the tree.\", \"Finds all words in the tree that start with the prefix.\"], \"note\": \"The student explicitly frames autocomplete suggestions as a tree search from a prefix.\"}, {\"kc_id\": \"f24_a2_KC_002\", \"status\": \"neutral_mention\", \"confidence\": 0.98, \"evidence\": [\"Start from the node that corresponds to the last character of the prefix.\"], \"note\": \"The student explicitly identifies the prefix endpoint as the search start node.\"}, {\"kc_id\": \"f24_a2_KC_005\", \"status\": \"neutral_mention\", \"confidence\": 0.9, \"evidence\": [\"Finds all words in the tree that start with the prefix.\"], \"note\": \"The stated task requires collecting multiple completions rather than only one.\"}], \"flags\": [\"mostly_code_generation_request\"], \"_custom_id\": \"gpt-5.6-luna::0079c75e-2009-4d02-aae0-9d2f8c6f6f56::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-luna\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 13188, \"input_tokens_details\": {\"cache_write_tokens\": 13185, \"cached_tokens\": 0}, \"output_tokens\": 779, \"output_tokens_details\": {\"reasoning_tokens\": 516}, \"total_tokens\": 13967}, \"raw_response_id\": \"resp_03c240e6f3a789d0016a547f59e444819893d795dfb0d6dcd4\", \"api_error\": null}\n{\"model\": \"gpt-5.6-luna\", \"conversation_id\": \"00f9ebab-7e4c-471a-8623-523812e2bd4d\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-luna::00f9ebab-7e4c-471a-8623-523812e2bd4d::chunk_001_of_001\", \"parsed\": null, \"validation_errors\": [\"JSON parse error: Unterminated string starting at: line 1 column 6106 (char 6105)\", \"{\\\"conversation_id\\\":\\\"00f9ebab-7e4c-471a-8623-523812e2bd4d\\\",\\\"chunk_id\\\":\\\"chunk_001_of_001\\\",\\\"assignment_id\\\":\\\"f24_a2\\\",\\\"labels\\\":[{\\\"kc_id\\\":\\\"f24_a2_KC_006\\\",\\\"status\\\":\\\"neutral_mention\\\",\\\"confidence\\\":0.99,\\\"evidence\\\":[\\\"self.root = Node()\\\",\\\"for word in document.split():\\\"],\\\"note\\\":\\\"The student implements and discusses constructing a character-based prefix tree.\\\"},{\\\"kc_id\\\":\\\"f24_a2_KC_007\\\",\\\"status\\\":\\\"neutral_mention\\\",\\\"confidence\\\":0.97,\\\"evidence\\\":[\\\"if char not in node.children:\\\",\\\"node.children[char] = Node()\\\"],\\\"note\\\":\\\"The code reuses existing child nodes, demonstrating shared-prefix branching.\\\"},{\\\"kc_id\\\":\\\"f24_a2_KC_008\\\",\\\"status\\\":\\\"neutral_mention\\\",\\\"confidence\\\":0.99,\\\"evidence\\\":[\\\"words = document.split()\\\",\\\"for word in document.split():\\\"],\\\"note\\\":\\\"The document is explicitly split into individual words before insertion.\\\"},{\\\"kc_id\\\":\\\"f24_a2_KC_009\\\",\\\"status\\\":\\\"neutral_mention\\\",\\\"confidence\\\":0.99,\\\"evidence\\\":[\\\"for char in word.lower():\\\",\\\"node = node.children[char]\\\"],\\\"note\\\":\\\"Each word is inserted character by character\"], \"usage\": {\"input_tokens\": 33042, \"input_tokens_details\": {\"cache_write_tokens\": 33039, \"cached_tokens\": 0}, \"output_tokens\": 3000, \"output_tokens_details\": {\"reasoning_tokens\": 1426}, \"total_tokens\": 36042}, \"raw_response_id\": \"resp_02f3f98dc001c88d016a547f6179cc819a9ebbc03489c8e98b\", \"api_error\": null}\n{\"model\": \"gpt-5.6-luna\", \"conversation_id\": \"010e3841-3b59-4817-93e5-5cce0da9c676\", \"chunk_id\": \"chunk_001_of_001\", \"custom_id\": \"gpt-5.6-luna::010e3841-3b59-4817-93e5-5cce0da9c676::chunk_001_of_001\", \"parsed\": {\"conversation_id\": \"010e3841-3b59-4817-93e5-5cce0da9c676\", \"chunk_id\": \"chunk_001_of_001\", \"assignment_id\": \"f24_a2\", \"labels\": [], \"flags\": [\"no_relevant_kc_evidence\"], \"_custom_id\": \"gpt-5.6-luna::010e3841-3b59-4817-93e5-5cce0da9c676::chunk_001_of_001\", \"_teacher_model\": \"gpt-5.6-luna\", \"_codebook_hash\": \"27f138eb0aa04f8e3461400b5578db93ece8a7aa81954a2d4963a84ca1c7dbf7\", \"_created_by_pipeline\": \"teacher_label_kcs.py\"}, \"validation_errors\": [], \"usage\": {\"input_tokens\": 13951, \"input_tokens_details\": {\"cache_write_tokens\": 13948, \"cached_tokens\": 0}, \"output_tokens\": 234, \"output_tokens_details\": {\"reasoning_tokens\": 162}, \"total_tokens\": 14185}, \"raw_response_id\": \"resp_0760c5304069e1f5016a547f7365408199b0746cea9aad77fa\", \"api_error\": null}\n"};
+
+const state = {
+  filename: "",
+  records: [],
+  groups: [],
+  currentGroupIndex: 0,
+  selectedModels: new Set(),
+  reviews: {},
+  datasetId: "",
+};
+
+const STATUS_ORDER = [
+  "misconception",
+  "difficulty_evidence",
+  "information_seeking",
+  "resolved_understanding",
+  "neutral_mention",
+  "insufficient_evidence",
+];
+
+const $ = (id) => document.getElementById(id);
+const els = {
+  fileInput: $("fileInput"), reviewImportInput: $("reviewImportInput"), dropZone: $("dropZone"),
+  emptyScreen: $("emptyScreen"), workspace: $("workspace"), groupList: $("groupList"),
+  groupSearch: $("groupSearch"), datasetSummary: $("datasetSummary"), assignmentLabel: $("assignmentLabel"),
+  conversationTitle: $("conversationTitle"), conversationMeta: $("conversationMeta"), statsGrid: $("statsGrid"),
+  alertStack: $("alertStack"), kcSearch: $("kcSearch"), coverageFilter: $("coverageFilter"),
+  reviewFilter: $("reviewFilter"), expandEvidence: $("expandEvidence"), modelToggles: $("modelToggles"),
+  matrixHead: $("matrixHead"), matrixBody: $("matrixBody"), modelCards: $("modelCards"),
+  jaccardTable: $("jaccardTable"), statusAgreementSummary: $("statusAgreementSummary"),
+  rawRecords: $("rawRecords"), conversationReviewNotes: $("conversationReviewNotes"),
+  preferredModel: $("preferredModel"), themeBtn: $("themeBtn"),
+};
+
+function esc(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function normalizeNewlines(value) {
+  if (value === null || value === undefined) return "";
+  const text = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\n")
+    .replace(/\\t/g, "\t");
+}
+
+function parseInput(text) {
+  const trimmed = text.replace(/^\uFEFF/, "").trim();
+  if (!trimmed) throw new Error("The selected file is empty.");
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && Array.isArray(parsed.records)) return parsed.records;
+    if (parsed && Array.isArray(parsed.results)) return parsed.results;
+    return [parsed];
+  } catch (_) {
+    const records = [];
+    const failures = [];
+    trimmed.split(/\r?\n/).forEach((line, index) => {
+      if (!line.trim()) return;
+      try { records.push(JSON.parse(line)); }
+      catch (error) { failures.push(`Line ${index + 1}: ${error.message}`); }
+    });
+    if (!records.length || failures.length) {
+      throw new Error(`JSONL parsing failed. ${failures.slice(0, 4).join(" | ")}`);
+    }
+    return records;
+  }
+}
+
+function inferAssignment(record) {
+  if (record?.parsed?.assignment_id) return String(record.parsed.assignment_id);
+  const haystack = JSON.stringify(record.validation_errors ?? []) + " " + JSON.stringify(record);
+  const direct = haystack.match(/\"assignment_id\"\s*:\s*\"([^\"]+)\"/);
+  if (direct) return direct[1];
+  const kcPrefix = haystack.match(/([A-Za-z0-9]+_a\d+)_KC_\d+/i);
+  return kcPrefix ? kcPrefix[1] : "unknown_assignment";
+}
+
+function inferConversation(record) {
+  return String(record.conversation_id ?? record?.parsed?.conversation_id ?? "unknown_conversation");
+}
+
+function inferModel(record) {
+  return String(record.model ?? record?.parsed?._teacher_model ?? "unknown_model");
+}
+
+function inferChunk(record) {
+  return String(record.chunk_id ?? record?.parsed?.chunk_id ?? "unknown_chunk");
+}
+
+function validationMessages(record) {
+  const values = Array.isArray(record.validation_errors) ? record.validation_errors : [];
+  return values.map(normalizeNewlines).filter(Boolean);
+}
+
+function apiErrorMessage(record) {
+  if (record.api_error === null || record.api_error === undefined || record.api_error === "") return "";
+  return normalizeNewlines(record.api_error);
+}
+
+function normalizeLabel(label, recordIndex, chunkId) {
+  return {
+    kcId: String(label?.kc_id ?? label?.kcId ?? "unknown_kc"),
+    status: String(label?.status ?? "unknown"),
+    confidence: Number.isFinite(Number(label?.confidence)) ? Number(label.confidence) : null,
+    evidence: Array.isArray(label?.evidence) ? label.evidence.map(normalizeNewlines) : [],
+    note: normalizeNewlines(label?.note ?? ""),
+    recordIndex,
+    chunkId,
+    raw: label,
+  };
+}
+
+function normalizeRecord(record, recordIndex) {
+  const parsed = record && typeof record.parsed === "object" && record.parsed !== null ? record.parsed : null;
+  const chunkId = inferChunk(record);
+  const labels = Array.isArray(parsed?.labels)
+    ? parsed.labels.map(label => normalizeLabel(label, recordIndex, chunkId))
+    : [];
+  const validation = validationMessages(record);
+  const apiError = apiErrorMessage(record);
+  return {
+    assignmentId: inferAssignment(record),
+    conversationId: inferConversation(record),
+    model: inferModel(record),
+    chunkId,
+    customId: String(record.custom_id ?? parsed?._custom_id ?? ""),
+    labels,
+    flags: Array.isArray(parsed?.flags) ? parsed.flags.map(String) : [],
+    validation,
+    apiError,
+    parsedOk: Boolean(parsed),
+    usage: record.usage && typeof record.usage === "object" ? record.usage : {},
+    codebookHash: String(parsed?._codebook_hash ?? ""),
+    pipeline: String(parsed?._created_by_pipeline ?? ""),
+    raw: record,
+    recordIndex,
+  };
+}
+
+function buildGroups(records) {
+  const normalized = records.map(normalizeRecord);
+  const map = new Map();
+
+  normalized.forEach(rec => {
+    const key = `${rec.assignmentId}::${rec.conversationId}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        assignmentId: rec.assignmentId,
+        conversationId: rec.conversationId,
+        models: new Map(),
+        records: [],
+      });
+    }
+    const group = map.get(key);
+    group.records.push(rec);
+    if (!group.models.has(rec.model)) {
+      group.models.set(rec.model, {
+        model: rec.model,
+        records: [],
+        labelsByKc: new Map(),
+        flags: new Set(),
+        errors: [],
+        usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0, reasoning_tokens: 0, cached_tokens: 0, cache_write_tokens: 0 },
+      });
+    }
+    const model = group.models.get(rec.model);
+    model.records.push(rec);
+    rec.flags.forEach(flag => model.flags.add(flag));
+    rec.validation.forEach(msg => model.errors.push(msg));
+    if (rec.apiError) model.errors.push(rec.apiError);
+    rec.labels.forEach(label => {
+      if (!model.labelsByKc.has(label.kcId)) model.labelsByKc.set(label.kcId, []);
+      model.labelsByKc.get(label.kcId).push(label);
+    });
+    model.usage.input_tokens += Number(rec.usage.input_tokens ?? 0);
+    model.usage.output_tokens += Number(rec.usage.output_tokens ?? 0);
+    model.usage.total_tokens += Number(rec.usage.total_tokens ?? 0);
+    model.usage.reasoning_tokens += Number(rec.usage?.output_tokens_details?.reasoning_tokens ?? 0);
+    model.usage.cached_tokens += Number(rec.usage?.input_tokens_details?.cached_tokens ?? 0);
+    model.usage.cache_write_tokens += Number(rec.usage?.input_tokens_details?.cache_write_tokens ?? 0);
+  });
+
+  return [...map.values()].sort((a, b) =>
+    a.assignmentId.localeCompare(b.assignmentId) || a.conversationId.localeCompare(b.conversationId)
+  );
+}
+
+async function hashText(text) {
+  try {
+    const bytes = new TextEncoder().encode(text);
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 20);
+  } catch (_) {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+    return `fallback-${Math.abs(hash)}`;
+  }
+}
+
+function storageGet(key) { try { return localStorage.getItem(key); } catch (_) { return null; } }
+function storageSet(key, value) { try { localStorage.setItem(key, value); } catch (_) { /* File/privacy mode may disable storage. */ } }
+function storageKey() { return `kc-comparison-review::${state.datasetId}`; }
+function loadReviews() {
+  try { state.reviews = JSON.parse(storageGet(storageKey()) || "{}"); }
+  catch (_) { state.reviews = {}; }
+}
+function saveReviews() {
+  storageSet(storageKey(), JSON.stringify(state.reviews));
+}
+function groupReview(group) {
+  if (!state.reviews[group.key]) state.reviews[group.key] = { conversationNotes: "", preferredModel: "", kcs: {} };
+  return state.reviews[group.key];
+}
+
+async function loadDataset(text, filename = "dataset.jsonl") {
+  const records = parseInput(text);
+  if (!records.every(r => r && typeof r === "object" && !Array.isArray(r))) {
+    throw new Error("Every JSONL line must contain one JSON object.");
+  }
+  state.filename = filename;
+  state.records = records;
+  state.groups = buildGroups(records);
+  state.currentGroupIndex = 0;
+  state.datasetId = await hashText(text);
+  loadReviews();
+  const allModels = [...new Set(state.groups.flatMap(g => [...g.models.keys()]))];
+  state.selectedModels = new Set(allModels);
+  renderAll();
+}
+
+function currentGroup() { return state.groups[state.currentGroupIndex] ?? null; }
+function selectedModelNames(group) { return [...group.models.keys()].filter(model => state.selectedModels.has(model)); }
+function unionKcs(group, modelNames = selectedModelNames(group)) {
+  const set = new Set();
+  modelNames.forEach(name => group.models.get(name)?.labelsByKc.forEach((_, kc) => set.add(kc)));
+  return [...set].sort(naturalSort);
+}
+function naturalSort(a, b) {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+}
+function dominantStatus(entries) {
+  if (!entries?.length) return null;
+  const counts = new Map();
+  entries.forEach(e => counts.set(e.status, (counts.get(e.status) || 0) + 1));
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || STATUS_ORDER.indexOf(a[0]) - STATUS_ORDER.indexOf(b[0]))[0][0];
+}
+function averageConfidence(entries) {
+  const values = (entries ?? []).map(e => e.confidence).filter(Number.isFinite);
+  return values.length ? values.reduce((a, b) => a + b, 0) / values.length : null;
+}
+function modelUniqueKcs(model) { return new Set(model.labelsByKc.keys()); }
+function formatNumber(value) { return Number(value || 0).toLocaleString(); }
+function pct(value) { return `${Math.round(value * 100)}%`; }
+function statusClass(status) { return `status-${String(status || "unknown").replace(/[^a-z0-9_\-]/gi, "_")}`; }
+
+function rowMetrics(group, kcId, modelNames) {
+  const present = [];
+  const statuses = [];
+  modelNames.forEach(name => {
+    const entries = group.models.get(name)?.labelsByKc.get(kcId) ?? [];
+    if (entries.length) {
+      present.push(name);
+      statuses.push(dominantStatus(entries));
+    }
+  });
+  const uniqueStatuses = new Set(statuses.filter(Boolean));
+  return {
+    presentCount: present.length,
+    missingCount: modelNames.length - present.length,
+    unanimous: present.length >= 2 && present.length === modelNames.length && uniqueStatuses.size === 1,
+    disagreement: present.length >= 2 && uniqueStatuses.size > 1,
+    intersection: present.length === modelNames.length,
+    statuses,
+  };
+}
+
+function renderAll() {
+  const loaded = state.groups.length > 0;
+  els.emptyScreen.classList.toggle("hidden", loaded);
+  els.workspace.classList.toggle("visible", loaded);
+  renderSidebar();
+  if (loaded) renderCurrentGroup();
+}
+
+function renderSidebar() {
+  els.datasetSummary.textContent = state.groups.length
+    ? `${state.records.length} records · ${state.groups.length} conversation groups`
+    : "No dataset loaded";
+  const query = els.groupSearch.value.trim().toLowerCase();
+  els.groupList.innerHTML = state.groups.map((group, index) => {
+    const models = [...group.models.keys()];
+    const kcCount = unionKcs(group, models).length;
+    const errorCount = [...group.models.values()].reduce((n, m) => n + m.errors.length, 0);
+    const haystack = `${group.assignmentId} ${group.conversationId} ${models.join(" ")}`.toLowerCase();
+    if (query && !haystack.includes(query)) return "";
+    return `<button class="group-item ${index === state.currentGroupIndex ? "active" : ""}" data-index="${index}">
+      <strong>${esc(group.assignmentId)}</strong>
+      <small>${esc(group.conversationId)}</small>
+      <span class="group-badges">
+        <span class="mini-badge">${models.length} models</span>
+        <span class="mini-badge">${kcCount} KCs</span>
+        ${errorCount ? `<span class="mini-badge">${errorCount} errors</span>` : ""}
+      </span>
+    </button>`;
+  }).join("");
+  els.groupList.querySelectorAll(".group-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.currentGroupIndex = Number(btn.dataset.index);
+      renderSidebar();
+      renderCurrentGroup();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+}
+
+function renderCurrentGroup() {
+  const group = currentGroup();
+  if (!group) return;
+  const models = [...group.models.keys()];
+  models.forEach(model => state.selectedModels.add(model));
+  els.assignmentLabel.textContent = group.assignmentId;
+  els.conversationTitle.textContent = "Conversation comparison";
+  els.conversationMeta.textContent = group.conversationId;
+  renderStats(group);
+  renderAlerts(group);
+  renderModelToggles(group);
+  renderMatrix(group);
+  renderModelCards(group);
+  renderAgreement(group);
+  renderRawRecords(group);
+  renderConversationReview(group);
+}
+
+function renderStats(group) {
+  const modelNames = selectedModelNames(group);
+  const kcs = unionKcs(group, modelNames);
+  const intersection = kcs.filter(kc => rowMetrics(group, kc, modelNames).intersection).length;
+  const disagreements = kcs.filter(kc => rowMetrics(group, kc, modelNames).disagreement).length;
+  const reviewed = Object.values(groupReview(group).kcs || {}).filter(r => r?.decision && r.decision !== "unreviewed").length;
+  const totalTokens = modelNames.reduce((sum, name) => sum + group.models.get(name).usage.total_tokens, 0);
+  const stats = [
+    ["Selected models", modelNames.length],
+    ["KC union", kcs.length],
+    ["KC intersection", intersection],
+    ["Status disagreements", disagreements],
+    ["Reviewed KCs", `${reviewed}/${kcs.length}`],
+    ["Total tokens", formatNumber(totalTokens)],
+  ];
+  els.statsGrid.innerHTML = stats.map(([label, value]) => `<div class="stat-card"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("");
+}
+
+function renderAlerts(group) {
+  const alerts = [];
+  group.models.forEach(model => {
+    if (model.errors.length) alerts.push(`<div class="alert danger"><strong>${esc(model.model)}:</strong> ${model.errors.length} validation/API issue(s). This model remains visible so missing outputs are not mistaken for disagreement.</div>`);
+    if (!model.labelsByKc.size && !model.errors.length) alerts.push(`<div class="alert warning"><strong>${esc(model.model)}:</strong> returned zero KC labels for this conversation.</div>`);
+  });
+  els.alertStack.innerHTML = alerts.join("");
+}
+
+function renderModelToggles(group) {
+  els.modelToggles.innerHTML = [...group.models.keys()].map(model => `<label class="model-toggle"><input type="checkbox" data-model="${esc(model)}" ${state.selectedModels.has(model) ? "checked" : ""}> ${esc(model)}</label>`).join("");
+  els.modelToggles.querySelectorAll("input").forEach(input => {
+    input.addEventListener("change", () => {
+      if (input.checked) state.selectedModels.add(input.dataset.model);
+      else state.selectedModels.delete(input.dataset.model);
+      if (!selectedModelNames(group).length) {
+        input.checked = true;
+        state.selectedModels.add(input.dataset.model);
+      }
+      renderStats(group); renderMatrix(group); renderAgreement(group);
+    });
+  });
+}
+
+function reviewForKc(group, kcId) {
+  const gr = groupReview(group);
+  if (!gr.kcs[kcId]) gr.kcs[kcId] = { decision: "unreviewed", adjudicatedStatus: "", notes: "" };
+  return gr.kcs[kcId];
+}
+
+function renderMatrix(group) {
+  const modelNames = selectedModelNames(group);
+  const allKcs = unionKcs(group, modelNames);
+  const query = els.kcSearch.value.trim().toLowerCase();
+  const coverage = els.coverageFilter.value;
+  const reviewFilter = els.reviewFilter.value;
+
+  const rows = allKcs.filter(kcId => {
+    const metrics = rowMetrics(group, kcId, modelNames);
+    const review = reviewForKc(group, kcId);
+    if (coverage === "disagreement" && !metrics.disagreement) return false;
+    if (coverage === "missing" && !metrics.missingCount) return false;
+    if (coverage === "unanimous" && !metrics.unanimous) return false;
+    if (coverage === "intersection" && !metrics.intersection) return false;
+    if (reviewFilter !== "all" && review.decision !== reviewFilter) return false;
+    if (query) {
+      const text = [kcId];
+      modelNames.forEach(name => {
+        const entries = group.models.get(name)?.labelsByKc.get(kcId) ?? [];
+        entries.forEach(e => text.push(e.status, e.note, ...e.evidence));
+      });
+      if (!text.join(" ").toLowerCase().includes(query)) return false;
+    }
+    return true;
+  });
+
+  els.matrixHead.innerHTML = `<tr><th class="kc-col">Knowledge component & review</th>${modelNames.map(name => {
+    const model = group.models.get(name);
+    return `<th class="model-head"><strong>${esc(name)}</strong><small>${model.labelsByKc.size} unique KCs</small><div class="model-meta"><span class="mini-badge">${formatNumber(model.usage.total_tokens)} tokens</span>${model.errors.length ? `<span class="mini-badge">${model.errors.length} errors</span>` : ""}</div></th>`;
+  }).join("")}</tr>`;
+
+  els.matrixBody.innerHTML = rows.map(kcId => renderMatrixRow(group, kcId, modelNames)).join("") || `<tr><td class="kc-col" colspan="${modelNames.length + 1}">No KC rows match the current filters.</td></tr>`;
+  bindReviewInputs(group);
+  applyEvidenceExpansion();
+}
+
+function renderMatrixRow(group, kcId, modelNames) {
+  const metrics = rowMetrics(group, kcId, modelNames);
+  const review = reviewForKc(group, kcId);
+  let agreementText = "Only one model selected/present";
+  let agreementClass = "";
+  if (metrics.unanimous) { agreementText = `Unanimous: ${metrics.statuses[0].replaceAll("_", " ")}`; agreementClass = "good"; }
+  else if (metrics.disagreement) { agreementText = `Status disagreement: ${[...new Set(metrics.statuses)].join(" vs ")}`; agreementClass = "bad"; }
+  else if (metrics.missingCount) { agreementText = `Missing from ${metrics.missingCount} selected model(s)`; agreementClass = "bad"; }
+
+  const statusOptions = ["", ...STATUS_ORDER].map(status => `<option value="${status}" ${review.adjudicatedStatus === status ? "selected" : ""}>${status ? status.replaceAll("_", " ") : "No adjudicated status"}</option>`).join("");
+  const decisionOptions = [
+    ["unreviewed", "Unreviewed"], ["accepted", "Accept / validated"], ["needs_review", "Needs further review"], ["rejected", "Reject KC output"]
+  ].map(([value, label]) => `<option value="${value}" ${review.decision === value ? "selected" : ""}>${label}</option>`).join("");
+
+  return `<tr data-kc="${esc(kcId)}">
+    <td class="kc-col">
+      <div class="kc-id">${esc(kcId)}</div>
+      <div class="agreement-line ${agreementClass}">${esc(agreementText)}</div>
+      <div class="review-box">
+        <label>Manual decision</label>
+        <select class="control review-decision" data-kc="${esc(kcId)}">${decisionOptions}</select>
+        <label style="margin-top:7px">Adjudicated status</label>
+        <select class="control review-status" data-kc="${esc(kcId)}">${statusOptions}</select>
+        <label style="margin-top:7px">Reviewer notes</label>
+        <textarea class="control review-notes" data-kc="${esc(kcId)}" placeholder="Why one model is stronger, evidence quality, correction…">${esc(review.notes)}</textarea>
+      </div>
+    </td>
+    ${modelNames.map(name => renderResultCell(group.models.get(name), kcId)).join("")}
+  </tr>`;
+}
+
+function renderResultCell(model, kcId) {
+  const entries = model.labelsByKc.get(kcId) ?? [];
+  if (!entries.length) {
+    if (model.errors.length) return `<td class="result-cell"><div class="error-cell"><strong>Unavailable</strong><br>This record has a parse/API error. Open Model summaries or Raw records for details.</div></td>`;
+    return `<td class="result-cell"><div class="missing-cell">Not selected by this model</div></td>`;
+  }
+  return `<td class="result-cell">${entries.map(entry => {
+    const conf = entry.confidence;
+    return `<div class="label-entry">
+      <div class="entry-top"><span class="status-pill ${statusClass(entry.status)}">${esc(entry.status.replaceAll("_", " "))}</span><span class="confidence">${conf === null ? "No confidence" : `${(conf * 100).toFixed(1)}%`}</span></div>
+      ${conf === null ? "" : `<div class="confidence-track"><div class="confidence-bar" style="width:${Math.max(0, Math.min(100, conf * 100))}%"></div></div>`}
+      ${entry.note ? `<p class="note">${esc(entry.note)}</p>` : ""}
+      <details class="evidence-details"><summary>Evidence (${entry.evidence.length}) · ${esc(entry.chunkId)}</summary><ol class="evidence-list">${entry.evidence.map(item => `<li>${esc(item)}</li>`).join("") || "<li>No evidence supplied</li>"}</ol></details>
+    </div>`;
+  }).join("")}</td>`;
+}
+
+function bindReviewInputs(group) {
+  els.matrixBody.querySelectorAll(".review-decision").forEach(input => input.addEventListener("change", () => {
+    reviewForKc(group, input.dataset.kc).decision = input.value; saveReviews(); renderStats(group);
+  }));
+  els.matrixBody.querySelectorAll(".review-status").forEach(input => input.addEventListener("change", () => {
+    reviewForKc(group, input.dataset.kc).adjudicatedStatus = input.value; saveReviews();
+  }));
+  els.matrixBody.querySelectorAll(".review-notes").forEach(input => input.addEventListener("input", () => {
+    reviewForKc(group, input.dataset.kc).notes = input.value; saveReviews();
+  }));
+}
+
+function applyEvidenceExpansion() {
+  els.matrixBody.querySelectorAll(".evidence-details").forEach(details => { details.open = els.expandEvidence.checked; });
+}
+
+function renderModelCards(group) {
+  els.modelCards.innerHTML = [...group.models.values()].map(model => {
+    const confidences = [...model.labelsByKc.values()].flat().map(e => e.confidence).filter(Number.isFinite);
+    const avg = confidences.length ? confidences.reduce((a, b) => a + b, 0) / confidences.length : null;
+    const statuses = new Map();
+    [...model.labelsByKc.values()].flat().forEach(e => statuses.set(e.status, (statuses.get(e.status) || 0) + 1));
+    const statusText = [...statuses.entries()].sort((a, b) => b[1] - a[1]).map(([s, n]) => `${s}: ${n}`).join(" · ") || "No labels";
+    return `<article class="model-card">
+      <h3>${esc(model.model)}</h3>
+      <p class="sub">${model.records.length} record/chunk(s)</p>
+      <div class="kv-list">
+        <div class="kv-row"><span>Unique KC IDs</span><strong>${model.labelsByKc.size}</strong></div>
+        <div class="kv-row"><span>Average confidence</span><strong>${avg === null ? "—" : pct(avg)}</strong></div>
+        <div class="kv-row"><span>Input tokens</span><strong>${formatNumber(model.usage.input_tokens)}</strong></div>
+        <div class="kv-row"><span>Output tokens</span><strong>${formatNumber(model.usage.output_tokens)}</strong></div>
+        <div class="kv-row"><span>Reasoning tokens</span><strong>${formatNumber(model.usage.reasoning_tokens)}</strong></div>
+        <div class="kv-row"><span>Total tokens</span><strong>${formatNumber(model.usage.total_tokens)}</strong></div>
+        <div class="kv-row"><span>Status distribution</span><strong>${esc(statusText)}</strong></div>
+      </div>
+      ${model.flags.size ? `<div class="flags">${[...model.flags].map(flag => `<span class="flag">${esc(flag)}</span>`).join("")}</div>` : ""}
+      ${model.errors.length ? `<details open><summary>Validation / API issues (${model.errors.length})</summary><div style="padding:0 10px 10px">${model.errors.map(err => `<pre>${esc(err)}</pre>`).join("")}</div></details>` : ""}
+    </article>`;
+  }).join("");
+}
+
+function jaccard(a, b) {
+  const intersection = [...a].filter(x => b.has(x)).length;
+  const union = new Set([...a, ...b]).size;
+  return union ? intersection / union : 1;
+}
+
+function renderAgreement(group) {
+  const names = selectedModelNames(group);
+  const sets = Object.fromEntries(names.map(name => [name, modelUniqueKcs(group.models.get(name))]));
+  els.jaccardTable.innerHTML = names.length ? `<table class="pairwise-table"><thead><tr><th>Model</th>${names.map(n => `<th>${esc(n)}</th>`).join("")}</tr></thead><tbody>${names.map(a => `<tr><th>${esc(a)}</th>${names.map(b => `<td>${a === b ? "100%" : pct(jaccard(sets[a], sets[b]))}</td>`).join("")}</tr>`).join("")}</tbody></table>` : "No models selected.";
+
+  const kcs = unionKcs(group, names);
+  let comparable = 0, same = 0, different = 0, fullyUnanimous = 0;
+  kcs.forEach(kc => {
+    const metrics = rowMetrics(group, kc, names);
+    if (metrics.presentCount >= 2) {
+      comparable++;
+      if (new Set(metrics.statuses).size === 1) same++; else different++;
+    }
+    if (metrics.unanimous) fullyUnanimous++;
+  });
+  els.statusAgreementSummary.innerHTML = `<div class="kv-list">
+    <div class="kv-row"><span>Comparable KCs</span><strong>${comparable}</strong></div>
+    <div class="kv-row"><span>Same status where comparable</span><strong>${same}</strong></div>
+    <div class="kv-row"><span>Different status where comparable</span><strong>${different}</strong></div>
+    <div class="kv-row"><span>Fully unanimous across selected models</span><strong>${fullyUnanimous}</strong></div>
+    <div class="kv-row"><span>Status agreement rate</span><strong>${comparable ? pct(same / comparable) : "—"}</strong></div>
+  </div>`;
+}
+
+function renderRawRecords(group) {
+  els.rawRecords.innerHTML = group.records.map(rec => `<article class="model-card raw-record">
+    <h3>${esc(rec.model)} · ${esc(rec.chunkId)}</h3>
+    <p class="sub">Record index ${rec.recordIndex + 1} · parsed ${rec.parsedOk ? "successfully" : "failed"}</p>
+    <details><summary>Show full record</summary><pre>${esc(JSON.stringify(rec.raw, null, 2))}</pre></details>
+  </article>`).join("");
+}
+
+function renderConversationReview(group) {
+  const review = groupReview(group);
+  els.conversationReviewNotes.value = review.conversationNotes || "";
+  els.preferredModel.innerHTML = `<option value="">Not selected</option>${[...group.models.keys()].map(name => `<option value="${esc(name)}" ${review.preferredModel === name ? "selected" : ""}>${esc(name)}</option>`).join("")}`;
+}
+
+function downloadFile(name, content, type = "application/json") {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
+
+function exportReviews() {
+  if (!state.groups.length) return alert("Load a dataset first.");
+  const payload = {
+    schema_version: "1.0",
+    source_file: state.filename,
+    dataset_id: state.datasetId,
+    exported_at: new Date().toISOString(),
+    reviews: state.reviews,
+  };
+  downloadFile(`${state.filename.replace(/\.[^.]+$/, "")}_manual_review.json`, JSON.stringify(payload, null, 2));
+}
+
+function csvCell(value) { return `"${String(value ?? "").replaceAll('"', '""')}"`; }
+function exportMatrixCsv() {
+  const group = currentGroup();
+  if (!group) return alert("Load a dataset first.");
+  const names = selectedModelNames(group);
+  const header = ["assignment_id", "conversation_id", "kc_id", "review_decision", "adjudicated_status", "review_notes"];
+  names.forEach(name => header.push(`${name}__status`, `${name}__confidence`, `${name}__evidence`, `${name}__note`));
+  const lines = [header.map(csvCell).join(",")];
+  unionKcs(group, names).forEach(kc => {
+    const review = reviewForKc(group, kc);
+    const row = [group.assignmentId, group.conversationId, kc, review.decision, review.adjudicatedStatus, review.notes];
+    names.forEach(name => {
+      const entries = group.models.get(name)?.labelsByKc.get(kc) ?? [];
+      row.push(
+        entries.map(e => e.status).join(" | "),
+        entries.map(e => e.confidence ?? "").join(" | "),
+        entries.flatMap(e => e.evidence).join(" || "),
+        entries.map(e => e.note).join(" | ")
+      );
+    });
+    lines.push(row.map(csvCell).join(","));
+  });
+  downloadFile(`${group.assignmentId}_${group.conversationId}_comparison.csv`, lines.join("\n"), "text/csv;charset=utf-8");
+}
+
+async function handleFile(file) {
+  if (!file) return;
+  try {
+    await loadDataset(await file.text(), file.name);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+els.fileInput.addEventListener("change", e => handleFile(e.target.files[0]));
+els.groupSearch.addEventListener("input", renderSidebar);
+els.kcSearch.addEventListener("input", () => renderMatrix(currentGroup()));
+els.coverageFilter.addEventListener("change", () => renderMatrix(currentGroup()));
+els.reviewFilter.addEventListener("change", () => renderMatrix(currentGroup()));
+els.expandEvidence.addEventListener("change", applyEvidenceExpansion);
+els.conversationReviewNotes.addEventListener("input", () => { const g = currentGroup(); if (!g) return; groupReview(g).conversationNotes = els.conversationReviewNotes.value; saveReviews(); });
+els.preferredModel.addEventListener("change", () => { const g = currentGroup(); if (!g) return; groupReview(g).preferredModel = els.preferredModel.value; saveReviews(); });
+$("exportReviewBtn").addEventListener("click", exportReviews);
+$("exportCsvBtn").addEventListener("click", exportMatrixCsv);
+$("printBtn").addEventListener("click", () => window.print());
+$("prevGroupBtn").addEventListener("click", () => { if (!state.groups.length) return; state.currentGroupIndex = (state.currentGroupIndex - 1 + state.groups.length) % state.groups.length; renderSidebar(); renderCurrentGroup(); });
+$("nextGroupBtn").addEventListener("click", () => { if (!state.groups.length) return; state.currentGroupIndex = (state.currentGroupIndex + 1) % state.groups.length; renderSidebar(); renderCurrentGroup(); });
+$("resetBtn").addEventListener("click", () => { if (!confirm("Clear the loaded dataset from the viewer? Saved manual reviews will remain in browser storage.")) return; state.records = []; state.groups = []; state.currentGroupIndex = 0; renderAll(); els.fileInput.value = ""; });
+els.reviewImportInput.addEventListener("change", async e => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    const payload = JSON.parse(await file.text());
+    state.reviews = payload.reviews ?? payload;
+    saveReviews(); renderCurrentGroup(); alert("Review file imported.");
+  } catch (error) { alert(`Could not import review file: ${error.message}`); }
+});
+
+["dragenter", "dragover"].forEach(event => els.dropZone.addEventListener(event, e => { e.preventDefault(); els.dropZone.classList.add("dragover"); }));
+["dragleave", "drop"].forEach(event => els.dropZone.addEventListener(event, e => { e.preventDefault(); els.dropZone.classList.remove("dragover"); }));
+els.dropZone.addEventListener("drop", e => handleFile(e.dataTransfer.files[0]));
+
+document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => {
+  document.querySelectorAll(".tab-btn").forEach(x => x.classList.toggle("active", x === btn));
+  document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.toggle("active", panel.id === btn.dataset.tab));
+}));
+
+function setTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  storageSet("kc-viewer-theme", theme);
+  els.themeBtn.textContent = theme === "dark" ? "Light theme" : "Dark theme";
+}
+const initialTheme = storageGet("kc-viewer-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+setTheme(initialTheme);
+els.themeBtn.addEventListener("click", () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
+
+if (EMBEDDED_JSONL) {
+  loadDataset(EMBEDDED_JSONL.text, EMBEDDED_JSONL.filename || "embedded.jsonl").catch(error => alert(error.message));
+} else {
+  renderAll();
+}
+</script>
+</body>
+</html>

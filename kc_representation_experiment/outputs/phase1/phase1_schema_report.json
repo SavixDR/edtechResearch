@@ -1,0 +1,370 @@
+{
+  "generated_at_utc": "2026-06-23T07:41:44.274151+00:00",
+  "input_file": "E:\\PostGraduate\\Research\\edtech\\KC Generation\\f24_a2\\f24_a2_kc_model.json",
+  "top_level_keys": [
+    "assignment",
+    "knowledge_components",
+    "kc_relationships",
+    "task_kc_mapping",
+    "quality_control"
+  ],
+  "missing_expected_top_level_keys": [],
+  "assignment_id": "f24_a2",
+  "assignment_title": "Assignment 2 – SearchComplete",
+  "counts": {
+    "tasks": 14,
+    "knowledge_components": 59,
+    "kc_relationships": 115,
+    "task_kc_mapping_rows": 14
+  },
+  "candidate_kc_nodes": {
+    "source_section": "knowledge_components",
+    "id_field": "kc_id",
+    "name_field": "canonical_name",
+    "count": 59,
+    "kc_type_counts": {
+      "declarative_concept": 4,
+      "conceptual_relationship": 2,
+      "algorithmic_reasoning": 5,
+      "procedural_skill": 8,
+      "implementation_skill": 12,
+      "problem_solving_strategy": 6,
+      "conceptual_distinction": 3,
+      "output_interpretation": 4,
+      "mathematical_calculation": 2,
+      "verification_skill": 2,
+      "debugging_skill": 5,
+      "prerequisite_knowledge": 6
+    },
+    "granularity_counts": {
+      "parent": 8,
+      "child": 41,
+      "standalone": 10
+    },
+    "requirement_level_counts": {
+      "core": 42,
+      "supporting": 9,
+      "prerequisite": 6,
+      "optional": 2
+    }
+  },
+  "candidate_task_nodes": {
+    "source_section": "assignment.tasks",
+    "id_field": "task_id",
+    "count": 14
+  },
+  "possible_relationship_types": {
+    "kg_edge_sources_assumed_by_user": [
+      "task_kc_mapping",
+      "kc_relationships"
+    ],
+    "kc_relationship_type_counts": {
+      "is_subcomponent_of": 42,
+      "prerequisite_for": 40,
+      "applied_in": 5,
+      "assessed_by": 6,
+      "implemented_using": 8,
+      "contrasts_with": 7,
+      "commonly_confused_with": 7
+    },
+    "task_kc_mapping_edge_fields": [
+      "core_kc_ids",
+      "supporting_kc_ids",
+      "prerequisite_kc_ids",
+      "optional_kc_ids",
+      "assessed_kc_ids"
+    ]
+  },
+  "schema_profiles": {
+    "knowledge_components": [
+      {
+        "field": "aliases",
+        "types": [
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "canonical_name",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "commonly_confused_with_kc_ids",
+        "types": [
+          "list[]",
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "confidence",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "definition",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "granularity",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "kc_id",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "kc_type",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "parent_kc_id",
+        "types": [
+          "NoneType",
+          "str"
+        ],
+        "missing_or_blank": 18,
+        "total_rows": 59
+      },
+      {
+        "field": "possible_difficulty_signals",
+        "types": [
+          "list[dict]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "prerequisite_kc_ids",
+        "types": [
+          "list[]",
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "related_task_ids",
+        "types": [
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "requirement_level",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "source_evidence",
+        "types": [
+          "list[dict]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "student_must_know_or_do",
+        "types": [
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      },
+      {
+        "field": "successful_performance_indicators",
+        "types": [
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 59
+      }
+    ],
+    "kc_relationships": [
+      {
+        "field": "justification",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 115
+      },
+      {
+        "field": "relationship",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 115
+      },
+      {
+        "field": "source_kc_id",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 115
+      },
+      {
+        "field": "target_kc_id",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 115
+      }
+    ],
+    "task_kc_mapping": [
+      {
+        "field": "assessed_kc_ids",
+        "types": [
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      },
+      {
+        "field": "core_kc_ids",
+        "types": [
+          "list[]",
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      },
+      {
+        "field": "optional_kc_ids",
+        "types": [
+          "list[]",
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      },
+      {
+        "field": "prerequisite_kc_ids",
+        "types": [
+          "list[]",
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      },
+      {
+        "field": "supporting_kc_ids",
+        "types": [
+          "list[]",
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      },
+      {
+        "field": "task_id",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      }
+    ],
+    "assignment_tasks": [
+      {
+        "field": "assessed_behaviour",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      },
+      {
+        "field": "description",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      },
+      {
+        "field": "required_output",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      },
+      {
+        "field": "source_evidence",
+        "types": [
+          "list[str]"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      },
+      {
+        "field": "task_id",
+        "types": [
+          "str"
+        ],
+        "missing_or_blank": 0,
+        "total_rows": 14
+      }
+    ]
+  },
+  "reference_integrity": {
+    "undefined_kc_references": [],
+    "undefined_task_references": [],
+    "unreferenced_kc_ids": [],
+    "unreferenced_task_ids": []
+  },
+  "frozen_codebook_policy": {
+    "included_fields": [
+      "kc_id",
+      "canonical_name",
+      "definition",
+      "aliases",
+      "parent_kc_id"
+    ],
+    "excluded_fields_to_keep_representation_neutral": [
+      "related_task_ids",
+      "prerequisite_kc_ids",
+      "source_evidence",
+      "student_must_know_or_do",
+      "successful_performance_indicators",
+      "possible_difficulty_signals",
+      "commonly_confused_with_kc_ids",
+      "requirement_level",
+      "confidence"
+    ],
+    "reason": "The codebook is the fixed label vocabulary. Retrieval-only content such as task mappings, prerequisites, source evidence, performance indicators, confusion links, and difficulty signals should not be included by default because those fields are part of the KB content used by JSON/KG retrievers."
+  }
+}

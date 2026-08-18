@@ -1,0 +1,4184 @@
+{
+  "graph_metadata": {
+    "schema_version": "1.0",
+    "assignment_id": "f24_a2",
+    "assignment_title": "Assignment 2 – SearchComplete",
+    "assignment_objective": "Implement and analyse autocomplete as a tree-search problem using individual-word prefix-tree construction, BFS, DFS, and UCS with frequency-based costs.",
+    "source_file": "frozen_codebook_compact.txt",
+    "authoritative_teacher_kc_count": 59,
+    "derived_sub_kc_count": 57,
+    "node_count": 116,
+    "edge_count": 299,
+    "design_notes": [
+      "Teacher KC IDs and source wording are preserved as the authoritative layer.",
+      "Derived sub-KCs use a separate SKC namespace and are reusable across multiple teacher KCs to avoid duplication.",
+      "Source-stated edges and inferred edges are distinguished by provenance and confidence.",
+      "Task IDs remain node attributes rather than graph nodes to keep the KC graph compact.",
+      "Symmetric commonly-confused relations are stored once in canonical order.",
+      "Only high-value inferred cross-KC links are included to reduce graph density and preserve interpretability."
+    ],
+    "relation_semantics": {
+      "parent_of": "Hierarchical decomposition: target is a more specific component of source.",
+      "prerequisite_of": "Source should normally be mastered before target.",
+      "supports": "Source provides useful knowledge/evidence for target but is not treated as strictly required.",
+      "related_to": "Conceptually related without a stronger directional claim.",
+      "commonly_confused_with": "Symmetric diagnostic relation indicating concepts students may conflate."
+    }
+  },
+  "nodes": [
+    {
+      "id": "f24_a2_KC_001",
+      "name": "Modelling autocomplete as tree search",
+      "definition": "Understanding autocomplete as search over a character tree where prefixes define where search begins and completions are found by traversing paths.",
+      "node_kind": "teacher_kc",
+      "kc_type": "declarative_concept",
+      "granularity": "parent",
+      "level": "core",
+      "aliases": [
+        "autocomplete as search",
+        "autocomplete search problem"
+      ],
+      "student_must_know_do": "Explains autocomplete as searching a tree from a prefix to completed entries.",
+      "difficulty_signals": "conceptual_confusion: Is autocomplete just matching strings, or is it really a search problem? | interpretation: Student may not understand the search-problem framing. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_001",
+        "f24_a2_TASK_005",
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_002",
+      "name": "Identifying the prefix endpoint as the autocomplete search start state",
+      "definition": "Determining that search begins at the node reached after following all characters of the typed prefix.",
+      "node_kind": "teacher_kc",
+      "kc_type": "conceptual_relationship",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "initial state",
+        "prefix node",
+        "start node",
+        "prefix endpoint"
+      ],
+      "student_must_know_do": "Starts BFS, DFS, and UCS from the prefix endpoint node.",
+      "difficulty_signals": "procedural_difficulty: Should BFS start from the root or from the last letter of the prefix? | interpretation: Student may be unsure how the prefix defines the search start state. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_001",
+        "f24_a2_TASK_005"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_003",
+      "name": "Recognizing completed entries as autocomplete goal states",
+      "definition": "Understanding that a valid word ending is a goal state in autocomplete search.",
+      "node_kind": "teacher_kc",
+      "kc_type": "declarative_concept",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "goal node",
+        "word ending",
+        "terminal entry",
+        "complete entry"
+      ],
+      "student_must_know_do": "Distinguishes complete words from intermediate prefix nodes.",
+      "difficulty_signals": "misconception: Every leaf node is a word, so I do not need to mark word endings. | interpretation: Student may confuse leaf nodes with completed entries. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_001",
+        "f24_a2_TASK_002",
+        "f24_a2_TASK_003"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_004",
+      "name": "Representing suggestions as paths through a character tree",
+      "definition": "Understanding that a suggestion is formed by concatenating characters along a path in the tree.",
+      "node_kind": "teacher_kc",
+      "kc_type": "conceptual_relationship",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "path as suggestion",
+        "complete path",
+        "character path"
+      ],
+      "student_must_know_do": "Explains that full suggestions come from complete character paths.",
+      "difficulty_signals": "implementation_difficulty: My function only returns the last character, not the full word. | interpretation: Student may not connect paths to full suggestions. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_001",
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_005",
+      "name": "Treating autocomplete as a multiple-goal search problem",
+      "definition": "Continuing search to collect multiple valid completions rather than stopping after the first one.",
+      "node_kind": "teacher_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "multiple goals",
+        "many completions",
+        "collect all suggestions"
+      ],
+      "student_must_know_do": "Does not stop after the first valid completion.",
+      "difficulty_signals": "misconception: Once I find the first word, can I return immediately? | interpretation: Student may not recognize autocomplete as multiple-goal search. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_001",
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_006",
+      "name": "Representing and constructing autocomplete prefix trees",
+      "definition": "Understanding and building the character-based prefix tree used for autocomplete entries.",
+      "node_kind": "teacher_kc",
+      "kc_type": "declarative_concept",
+      "granularity": "parent",
+      "level": "core",
+      "aliases": [
+        "trie construction",
+        "prefix-tree representation",
+        "character tree construction"
+      ],
+      "student_must_know_do": "Explains the role of the prefix tree in storing and retrieving autocomplete entries.",
+      "difficulty_signals": "information_seeking: What exactly is a prefix tree in this assignment? | interpretation: Student is seeking the tree-construction model. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_002",
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_004"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_007",
+      "name": "Representing words in a prefix tree",
+      "definition": "Understanding how individual words are stored by sharing common prefixes and branching at differing characters.",
+      "node_kind": "teacher_kc",
+      "kc_type": "declarative_concept",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "trie representation",
+        "shared prefixes",
+        "character tree",
+        "branching tree"
+      ],
+      "student_must_know_do": "Correctly explains shared-prefix branching.",
+      "difficulty_signals": "conceptual_confusion: Do I create a separate branch for every word even if they start the same? | interpretation: Student may not understand shared-prefix representation. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_002",
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_004"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_008",
+      "name": "Parsing the document into individual autocomplete words",
+      "definition": "Splitting the input document into individual words that can be inserted into the autocomplete prefix tree.",
+      "node_kind": "teacher_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "word parsing",
+        "document splitting",
+        "individual word extraction",
+        "document.split"
+      ],
+      "student_must_know_do": "Extracts individual words from the document before character insertion.",
+      "difficulty_signals": "procedural_difficulty: Should I insert the whole document as one string or split it first? | interpretation: Student may not understand the word-parsing step before tree insertion. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_011"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_009",
+      "name": "Constructing a prefix tree by inserting character paths",
+      "definition": "Inserting each word into the tree character by character, creating child nodes only when needed.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "tree insertion",
+        "character insertion",
+        "node creation",
+        "child-node insertion"
+      ],
+      "student_must_know_do": "Correctly creates or reuses child nodes while inserting words.",
+      "difficulty_signals": "implementation_difficulty: How do I insert each character into the children dictionary? | interpretation: Student likely needs help with procedural tree insertion. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_010",
+      "name": "Designing terminal-state representation for completed entries",
+      "definition": "Implementing a way to mark or recognize that a node corresponds to a completed word.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "terminal marker",
+        "end-of-word marker",
+        "complete-word node",
+        "goal marker"
+      ],
+      "student_must_know_do": "Correctly detects complete words even when they have children.",
+      "difficulty_signals": "implementation_difficulty: How will I know that the is complete if it also has children? | interpretation: Student recognizes the terminal-state issue but may not know how to implement it. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_002",
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_011",
+      "name": "Choosing a duplicate-entry handling strategy",
+      "definition": "Deciding how repeated words affect suggestions, frequency counts, and output duplication.",
+      "node_kind": "teacher_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "duplicate handling",
+        "deduplication",
+        "repeated entries",
+        "repeated words"
+      ],
+      "student_must_know_do": "States whether duplicates affect output, frequency, or both.",
+      "difficulty_signals": "uncertainty: Should duplicate words appear twice in suggestions or just increase frequency? | interpretation: Student is identifying an intentional design choice. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_008",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_012",
+      "name": "Tracing and visualizing prefix-tree construction",
+      "definition": "Manually tracing inserted words and producing a tree diagram showing shared prefixes and branches.",
+      "node_kind": "teacher_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "tree diagram",
+        "visualizing trie",
+        "manual tree tracing",
+        "drawing prefix tree"
+      ],
+      "student_must_know_do": "Produces a correct diagram with shared prefixes and branches.",
+      "difficulty_signals": "procedural_difficulty: I cannot draw the tree from test.txt; I do not know where branches split. | interpretation: Student may struggle to trace prefix sharing manually. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_004"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_013",
+      "name": "Locating and validating the prefix endpoint before search",
+      "definition": "Traversing the tree according to a prefix and handling absent or empty prefixes safely before running search.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "prefix lookup",
+        "prefix traversal",
+        "validating prefix",
+        "finding start node"
+      ],
+      "student_must_know_do": "Suggestions are generated only from the prefix subtree.",
+      "difficulty_signals": "implementation_difficulty: My suggestions do not begin with the prefix. | interpretation: Prefix endpoint lookup may be wrong. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_005",
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_014",
+      "name": "Distinguishing autocomplete search strategies",
+      "definition": "Understanding how BFS, DFS, and UCS differ in frontier policy, expansion order, and output behaviour.",
+      "node_kind": "teacher_kc",
+      "kc_type": "conceptual_distinction",
+      "granularity": "parent",
+      "level": "core",
+      "aliases": [
+        "search strategy comparison",
+        "BFS vs DFS vs UCS",
+        "traversal strategy distinction"
+      ],
+      "student_must_know_do": "Explains how BFS, DFS, and UCS differ.",
+      "difficulty_signals": "information_seeking: What is the real difference between BFS, DFS, and UCS here? | interpretation: Student is asking about algorithm-strategy distinctions. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_015",
+      "name": "Selecting the correct frontier policy for BFS, DFS, and UCS",
+      "definition": "Choosing FIFO queue behaviour for BFS, LIFO/recursion behaviour for DFS, and priority-based behaviour for UCS.",
+      "node_kind": "teacher_kc",
+      "kc_type": "conceptual_distinction",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "frontier policy",
+        "queue vs stack vs priority queue",
+        "expansion rule"
+      ],
+      "student_must_know_do": "Matches each algorithm to its correct frontier policy.",
+      "difficulty_signals": "conceptual_confusion: Can I use a queue for all three algorithms? | interpretation: Student may not distinguish FIFO, LIFO, and priority frontier policies. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_016",
+      "name": "Explaining breadth-first autocomplete ordering",
+      "definition": "Explaining why BFS explores level by level and tends to return shorter completions earlier.",
+      "node_kind": "teacher_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "BFS ordering",
+        "level-order search",
+        "breadth-first suggestions",
+        "shorter completions first"
+      ],
+      "student_must_know_do": "Correctly describes BFS ordering and same-depth tie dependence on child order.",
+      "difficulty_signals": "misconception: BFS gives the most frequent words first. | interpretation: Student confuses BFS ordering with frequency or UCS ordering. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_017",
+      "name": "Explaining depth-first autocomplete traversal",
+      "definition": "Explaining why DFS follows one branch deeply before backtracking to alternatives.",
+      "node_kind": "teacher_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "DFS traversal",
+        "deep-first search",
+        "branch-first search",
+        "backtracking traversal"
+      ],
+      "student_must_know_do": "Correctly describes depth-first traversal and backtracking.",
+      "difficulty_signals": "misconception: DFS checks all short words first before long words. | interpretation: Student may confuse DFS with BFS. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_013",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_018",
+      "name": "Explaining UCS as lowest-cumulative-cost expansion",
+      "definition": "Explaining that UCS expands the path with the lowest accumulated cost first.",
+      "node_kind": "teacher_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "uniform-cost search",
+        "lowest-cost expansion",
+        "cost-prioritized search"
+      ],
+      "student_must_know_do": "Distinguishes UCS from BFS and DFS using cumulative cost.",
+      "difficulty_signals": "conceptual_confusion: Why does UCS need costs? Is it just another DFS? | interpretation: Student may not understand cost-prioritized expansion. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_008",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_019",
+      "name": "Comparing traversal-order differences among BFS, DFS, and UCS",
+      "definition": "Comparing how BFS, DFS, and UCS produce different suggestion orders from the same prefix.",
+      "node_kind": "teacher_kc",
+      "kc_type": "output_interpretation",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "algorithm order comparison",
+        "traversal-order comparison",
+        "suggestion-order differences"
+      ],
+      "student_must_know_do": "Explains output differences using algorithm behaviour.",
+      "difficulty_signals": "output_interpretation: The algorithms return the same words, so are they basically the same? | interpretation: Student may not attend to traversal-order differences. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_020",
+      "name": "Interpreting informal suggestion quality differences across algorithms",
+      "definition": "Interpreting whether different algorithm outputs appear more useful or natural without using a formal metric.",
+      "node_kind": "teacher_kc",
+      "kc_type": "output_interpretation",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "suggestion quality",
+        "informal quality comparison",
+        "usefulness of suggestions"
+      ],
+      "student_must_know_do": "Gives justified informal comparison of suggestion usefulness.",
+      "difficulty_signals": "advanced_inquiry: Can I justify quality by saying UCS favours common transitions? | interpretation: Student is reasoning about informal suggestion quality. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_021",
+      "name": "Implementing autocomplete search algorithms",
+      "definition": "Implementing BFS, DFS, and UCS traversal logic to generate autocomplete suggestions from the prefix subtree.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "parent",
+      "level": "core",
+      "aliases": [
+        "search implementation",
+        "traversal implementation",
+        "autocomplete algorithms"
+      ],
+      "student_must_know_do": "Produces working autocomplete search methods.",
+      "difficulty_signals": "insufficient_evidence: Can you implement the search algorithms for me? | interpretation: Student may be answer-seeking, but the exact weak KC is unclear. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_022",
+      "name": "Implementing BFS autocomplete with a FIFO frontier",
+      "definition": "Implementing BFS using a first-in, first-out frontier while tracking paths and collecting completed suggestions.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "queue-based BFS",
+        "FIFO BFS",
+        "deque BFS",
+        "breadth-first implementation"
+      ],
+      "student_must_know_do": "Returns BFS-ordered suggestions as a list.",
+      "difficulty_signals": "implementation_difficulty: My BFS works like DFS because it goes deep into one branch. | interpretation: Student may be using the wrong frontier operation or queue discipline. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_011"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_023",
+      "name": "Implementing recursive DFS autocomplete",
+      "definition": "Implementing DFS using recursive calls to explore child paths and collect completed suggestions.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "recursive DFS",
+        "recursive traversal",
+        "DFS helper function"
+      ],
+      "student_must_know_do": "Can implement or reason about recursive DFS as a DFS option.",
+      "difficulty_signals": "implementation_difficulty: My recursive DFS never stops or gives recursion errors. | interpretation: Student may struggle with recursive DFS base cases or traversal structure. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_013",
+        "f24_a2_TASK_011"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_024",
+      "name": "Implementing stack-based DFS autocomplete",
+      "definition": "Implementing DFS using an explicit stack to explore child paths and collect completed suggestions.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "iterative DFS",
+        "explicit stack DFS",
+        "LIFO DFS"
+      ],
+      "student_must_know_do": "Can implement or reason about stack-based DFS as a DFS option.",
+      "difficulty_signals": "implementation_difficulty: My stack DFS gives the reverse order from what I expected. | interpretation: Student may not understand stack push/pop order. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_013",
+        "f24_a2_TASK_011"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_025",
+      "name": "Comparing recursive DFS with stack-based DFS",
+      "definition": "Explaining how recursive DFS and stack-based DFS differ in control flow, state storage, and possible output order.",
+      "node_kind": "teacher_kc",
+      "kc_type": "conceptual_distinction",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "recursion vs stack",
+        "recursive vs iterative DFS",
+        "DFS implementation comparison"
+      ],
+      "student_must_know_do": "Clearly compares recursive and stack-based DFS and can justify a choice.",
+      "difficulty_signals": "conceptual_confusion: Recursive DFS and stack DFS are completely different algorithms, right? | interpretation: Student may not understand that both implement DFS with different state storage. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_013"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_026",
+      "name": "Choosing child traversal order for deterministic suggestions",
+      "definition": "Selecting and consistently applying an order for visiting child nodes so suggestion order is explainable.",
+      "node_kind": "teacher_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "child",
+      "level": "supporting",
+      "aliases": [
+        "child order",
+        "traversal order",
+        "deterministic output",
+        "insertion-order traversal"
+      ],
+      "student_must_know_do": "Uses a consistent child traversal order and can explain its effect on results.",
+      "difficulty_signals": "uncertainty: Should I sort children alphabetically or use insertion order? | interpretation: Student is dealing with traversal-order design. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_027",
+      "name": "Maintaining search-path state to reconstruct complete suggestions",
+      "definition": "Carrying enough path information during traversal to return the full word, not only a suffix or node value.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "path tracking",
+        "path-state tuple",
+        "full suggestion reconstruction",
+        "suffix vs full completion"
+      ],
+      "student_must_know_do": "Returns full suggestion strings from BFS, DFS, and UCS.",
+      "difficulty_signals": "implementation_difficulty: I found the correct node, but I only return the suffix after the prefix. | interpretation: Student may not maintain complete path state during traversal. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_028",
+      "name": "Continuing search after finding one completion",
+      "definition": "Ensuring the algorithm keeps exploring after the first valid completion so all relevant suggestions can be returned.",
+      "node_kind": "teacher_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "avoid early stopping",
+        "collect all completions",
+        "continue after goal"
+      ],
+      "student_must_know_do": "Collects multiple completions rather than returning the first match only.",
+      "difficulty_signals": "debugging_difficulty: Only one suggestion appears even though there should be many. | interpretation: Student may stop search after the first terminal state. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_029",
+      "name": "Implementing UCS cost and priority-queue logic",
+      "definition": "Implementing the frequency, cost, and priority-queue logic needed for UCS autocomplete suggestions.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "parent",
+      "level": "core",
+      "aliases": [
+        "UCS cost model",
+        "frequency-cost implementation",
+        "UCS priority logic"
+      ],
+      "student_must_know_do": "Cost and priority logic supports UCS ordering.",
+      "difficulty_signals": "information_seeking: What data do I need to store for UCS costs? | interpretation: Student is asking about UCS cost modelling broadly. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_008",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_030",
+      "name": "Storing transition-frequency information for UCS",
+      "definition": "Recording how often character transitions occur so UCS costs can be calculated.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "frequency counting",
+        "transition counts",
+        "edge frequency",
+        "prefix frequency storage"
+      ],
+      "student_must_know_do": "Stores transition counts needed for inverse-frequency cost calculation.",
+      "difficulty_signals": "implementation_difficulty: Where should I count how often each transition appears? | interpretation: Student may not know how to store frequency information during tree construction. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_008",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_031",
+      "name": "Selecting a UCS transition-frequency model",
+      "definition": "Choosing whether UCS transition frequencies are based on immediate previous character context or full-prefix context.",
+      "node_kind": "teacher_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "immediate-character frequency",
+        "full-prefix frequency",
+        "UCS frequency model"
+      ],
+      "student_must_know_do": "Chooses and explains one frequency model consistently.",
+      "difficulty_signals": "uncertainty: Should the frequency be based on the previous character or the whole prefix? | interpretation: Student is identifying an allowed modelling choice. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_008",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_032",
+      "name": "Calculating inverse-frequency transition costs",
+      "definition": "Converting transition frequency into cost so more frequent transitions receive lower costs.",
+      "node_kind": "teacher_kc",
+      "kc_type": "mathematical_calculation",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "inverse frequency",
+        "frequency-to-cost conversion",
+        "transition cost"
+      ],
+      "student_must_know_do": "Correctly converts transition frequencies into costs.",
+      "difficulty_signals": "mathematical_calculation: If a transition appears 5 times, what should its cost be? | interpretation: Student may need help converting frequency into inverse cost. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_008",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_033",
+      "name": "Accumulating path costs across character transitions",
+      "definition": "Computing cumulative UCS path cost by adding transition costs along a candidate suggestion path.",
+      "node_kind": "teacher_kc",
+      "kc_type": "mathematical_calculation",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "cumulative cost",
+        "path-cost sum",
+        "accumulated transition cost"
+      ],
+      "student_must_know_do": "Uses cumulative path cost to prioritize UCS frontier entries.",
+      "difficulty_signals": "conceptual_confusion: Do I compare only the next letter cost or the total path cost? | interpretation: Student may confuse transition cost with cumulative path cost. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_008",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_034",
+      "name": "Implementing UCS autocomplete with a priority queue",
+      "definition": "Implementing UCS with a priority queue or heap that expands the lowest-cost path and handles equal-cost entries safely.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "priority queue UCS",
+        "heapq",
+        "heap-based UCS",
+        "tie handling"
+      ],
+      "student_must_know_do": "Returns UCS-ordered suggestions using accumulated costs.",
+      "difficulty_signals": "debugging_difficulty: heapq gives an error when two costs are the same. | interpretation: Student is facing priority-queue tie-handling or tuple-comparison issues. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_011"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_035",
+      "name": "Verifying and interpreting autocomplete outputs",
+      "definition": "Checking generated autocomplete outputs and using them to reason about algorithm behaviour.",
+      "node_kind": "teacher_kc",
+      "kc_type": "verification_skill",
+      "granularity": "parent",
+      "level": "core",
+      "aliases": [
+        "output checking",
+        "autocomplete verification",
+        "suggestion interpretation"
+      ],
+      "student_must_know_do": "Uses outputs as evidence for correctness and comparison.",
+      "difficulty_signals": "insufficient_evidence: Is my output correct? | interpretation: Student requests verification, but the weak KC is unclear without output or code. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_011",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_036",
+      "name": "Interpreting and preserving algorithm-specific suggestion order",
+      "definition": "Recording suggestions in the exact order produced by the algorithm and interpreting that order correctly.",
+      "node_kind": "teacher_kc",
+      "kc_type": "output_interpretation",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "preserving output order",
+        "displayed order",
+        "algorithm-specific order"
+      ],
+      "student_must_know_do": "Does not sort or reorder output lists before reporting.",
+      "difficulty_signals": "verification_request: Should I sort the suggestions before writing them in the report? | interpretation: Student may not understand algorithm-specific order preservation. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_011",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_037",
+      "name": "Verifying autocomplete behaviour with controlled prefixes and corpora",
+      "definition": "Testing with controlled prefixes or small corpora to check whether tree construction and search behaviour are plausible.",
+      "node_kind": "teacher_kc",
+      "kc_type": "verification_skill",
+      "granularity": "child",
+      "level": "supporting",
+      "aliases": [
+        "controlled testing",
+        "small-corpus testing",
+        "prefix testing",
+        "direct method testing"
+      ],
+      "student_must_know_do": "Uses test.txt, required prefix th, and additional prefixes to check behaviour.",
+      "difficulty_signals": "verification_request: Can I test with test.txt first before genZ.txt? | interpretation: Student is seeking a controlled testing strategy. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_004",
+        "f24_a2_TASK_011",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_038",
+      "name": "Comparing generated suggestion lists across algorithms",
+      "definition": "Using BFS, DFS, and UCS output lists as evidence to compare algorithm behaviour.",
+      "node_kind": "teacher_kc",
+      "kc_type": "output_interpretation",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "comparing outputs",
+        "suggestion-list comparison",
+        "generated-output comparison"
+      ],
+      "student_must_know_do": "Compares generated lists using algorithm behaviour rather than arbitrary preference.",
+      "difficulty_signals": "output_interpretation: BFS and DFS have different lists; how do I explain the difference? | interpretation: Student needs help interpreting generated outputs across algorithms. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_011",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_039",
+      "name": "Diagnosing autocomplete implementation errors",
+      "definition": "Identifying and reasoning about faults in tree construction, traversal, cost handling, or output generation.",
+      "node_kind": "teacher_kc",
+      "kc_type": "debugging_skill",
+      "granularity": "parent",
+      "level": "supporting",
+      "aliases": [
+        "autocomplete debugging",
+        "search bug diagnosis",
+        "implementation error diagnosis"
+      ],
+      "student_must_know_do": "Narrows vague failure symptoms to likely implementation causes.",
+      "difficulty_signals": "insufficient_evidence: My code is not working. | interpretation: Student signals debugging need, but the relevant KC is unknown. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_005",
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_040",
+      "name": "Diagnosing missing autocomplete suggestions",
+      "definition": "Identifying why expected suggestions are absent, such as insertion errors, terminal-marker errors, or prefix-lookup errors.",
+      "node_kind": "teacher_kc",
+      "kc_type": "debugging_skill",
+      "granularity": "child",
+      "level": "supporting",
+      "aliases": [
+        "missing results",
+        "absent completions",
+        "lost suggestions"
+      ],
+      "student_must_know_do": "Checks tree insertion, terminal markers, and prefix lookup when expected words are missing.",
+      "difficulty_signals": "debugging_difficulty: The word is in the file, but it never appears as a suggestion. | interpretation: Missing suggestion may result from insertion, terminal marking, or prefix lookup. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_005",
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_041",
+      "name": "Diagnosing incorrect suggestion order",
+      "definition": "Identifying why suggestions appear in an unexpected order due to frontier use, child traversal order, or output sorting.",
+      "node_kind": "teacher_kc",
+      "kc_type": "debugging_skill",
+      "granularity": "child",
+      "level": "supporting",
+      "aliases": [
+        "wrong order",
+        "unexpected output order",
+        "reversed DFS order"
+      ],
+      "student_must_know_do": "Checks frontier policy, child traversal order, and accidental sorting.",
+      "difficulty_signals": "debugging_difficulty: I get the right suggestions but the wrong order. | interpretation: Student likely needs help with frontier policy, child traversal, or sorting mistakes. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_042",
+      "name": "Diagnosing priority-queue ordering or tie-breaking errors",
+      "definition": "Identifying UCS errors caused by incorrect priority values, equal-cost handling, or unsafe heap entries.",
+      "node_kind": "teacher_kc",
+      "kc_type": "debugging_skill",
+      "granularity": "child",
+      "level": "supporting",
+      "aliases": [
+        "heap errors",
+        "UCS tie errors",
+        "priority queue bug",
+        "equal-cost error"
+      ],
+      "student_must_know_do": "Recognizes and fixes priority-queue ordering or tie-handling problems.",
+      "difficulty_signals": "debugging_difficulty: UCS gives random-looking results even though I calculated frequencies. | interpretation: Student may have incorrect priority values, cumulative cost, or tie handling. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_043",
+      "name": "Diagnosing premature stopping after one completion",
+      "definition": "Identifying when a search implementation incorrectly returns after the first completion instead of collecting multiple suggestions.",
+      "node_kind": "teacher_kc",
+      "kc_type": "debugging_skill",
+      "granularity": "child",
+      "level": "supporting",
+      "aliases": [
+        "early return",
+        "first-result-only bug",
+        "premature goal stopping"
+      ],
+      "student_must_know_do": "Finds and fixes early-return behaviour in search methods.",
+      "difficulty_signals": "debugging_difficulty: My search returns after the first match; how do I get all matches? | interpretation: Strong evidence of premature stopping issue. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_044",
+      "name": "Explaining implementation logic for tree construction and search",
+      "definition": "Explaining the reasoning and control flow behind submitted tree-construction and search implementations.",
+      "node_kind": "teacher_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "parent",
+      "level": "core",
+      "aliases": [
+        "code intuition",
+        "implementation explanation",
+        "algorithm explanation"
+      ],
+      "student_must_know_do": "Gives clear code-intuition explanations grounded in the submitted code.",
+      "difficulty_signals": "insufficient_evidence: Can you write the explanation section? | interpretation: Student may be seeking wording, but mastery cannot be inferred. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_012",
+        "f24_a2_TASK_013",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_045",
+      "name": "Explaining prefix-tree construction logic",
+      "definition": "Explaining how the implementation parses words, inserts characters, reuses shared prefixes, and marks completed entries.",
+      "node_kind": "teacher_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "explaining build_tree",
+        "tree-construction explanation",
+        "insertion explanation"
+      ],
+      "student_must_know_do": "Explains word parsing, character insertion, prefix reuse, and terminal marking.",
+      "difficulty_signals": "procedural_difficulty: How do I explain build_tree without just saying it loops? | interpretation: Student may struggle to articulate prefix-tree construction logic. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_012"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_046",
+      "name": "Explaining BFS implementation logic",
+      "definition": "Explaining how the BFS implementation uses a FIFO frontier, tracks paths, and collects suggestions.",
+      "node_kind": "teacher_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "BFS explanation",
+        "explaining queue traversal",
+        "BFS code intuition"
+      ],
+      "student_must_know_do": "Explains FIFO queue use, path tracking, and terminal collection.",
+      "difficulty_signals": "procedural_difficulty: How do I explain why my BFS uses a queue? | interpretation: Student may understand code but not connect it to BFS logic. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_012"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_047",
+      "name": "Explaining DFS implementation logic",
+      "definition": "Explaining how the DFS implementation explores branches, uses recursion or a stack, and collects suggestions.",
+      "node_kind": "teacher_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "DFS explanation",
+        "explaining stack traversal",
+        "explaining recursive DFS"
+      ],
+      "student_must_know_do": "Explains DFS implementation style and its traversal behaviour.",
+      "difficulty_signals": "conceptual_confusion: How do I explain recursive DFS versus stack DFS? | interpretation: Student may not distinguish the two DFS implementation styles. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_012",
+        "f24_a2_TASK_013"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_048",
+      "name": "Explaining UCS implementation logic",
+      "definition": "Explaining how the UCS implementation uses frequency-derived costs and a priority queue to order suggestions.",
+      "node_kind": "teacher_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "child",
+      "level": "core",
+      "aliases": [
+        "UCS explanation",
+        "explaining cost-based traversal",
+        "UCS code intuition"
+      ],
+      "student_must_know_do": "Explains frequency counting, inverse costs, cumulative costs, and priority queue ordering.",
+      "difficulty_signals": "procedural_difficulty: How should I explain UCS cost in my code? | interpretation: Student may need help connecting frequency, cost, heap ordering, and output. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_012"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_049",
+      "name": "Explaining implementation assumptions clearly",
+      "definition": "Stating and justifying choices about duplicates, UCS frequency model, child traversal order, tie-breaking, and optional text handling.",
+      "node_kind": "teacher_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "child",
+      "level": "supporting",
+      "aliases": [
+        "explaining assumptions",
+        "documenting design choices",
+        "justifying implementation choices"
+      ],
+      "student_must_know_do": "Clearly documents design assumptions and applies them consistently.",
+      "difficulty_signals": "repeated_clarification: Student repeatedly asks whether duplicates, cost model, or tie-breaking must match one official answer. | interpretation: Student may not understand that some choices are assumptions to state clearly. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_012",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_050",
+      "name": "Integrating implemented suggestion methods into the starter application",
+      "definition": "Connecting completed BFS, DFS, or UCS methods to the provided application flow so the GUI or main program uses the intended algorithm.",
+      "node_kind": "teacher_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "standalone",
+      "level": "supporting",
+      "aliases": [
+        "method reference integration",
+        "starter-code integration",
+        "replacing random suggestions",
+        "GUI integration"
+      ],
+      "student_must_know_do": "GUI or direct execution uses the intended implemented algorithm.",
+      "difficulty_signals": "implementation_difficulty: I implemented BFS but the GUI still shows random suggestions. | interpretation: Student likely did not connect the implemented method to the active suggestion function. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_010",
+        "f24_a2_TASK_011"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_051",
+      "name": "Applying consistent implementation assumptions",
+      "definition": "Applying chosen assumptions consistently across parsing, duplicates, cost calculation, traversal order, and reporting.",
+      "node_kind": "teacher_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "standalone",
+      "level": "core",
+      "aliases": [
+        "consistent design choices",
+        "assumption consistency",
+        "implementation policy consistency"
+      ],
+      "student_must_know_do": "No contradictions appear across duplicate handling, frequency model, traversal order, and reporting.",
+      "difficulty_signals": "procedural_difficulty: I used duplicates for UCS frequency but removed them from output; is that inconsistent? | interpretation: Student may need to apply assumptions consistently across parts. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_008",
+        "f24_a2_TASK_009",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_052",
+      "name": "Iterating over characters in Python strings",
+      "definition": "Using Python string iteration to process each character in a word.",
+      "node_kind": "teacher_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "standalone",
+      "level": "prerequisite",
+      "aliases": [
+        "string iteration",
+        "character iteration",
+        "looping through strings"
+      ],
+      "student_must_know_do": "Correctly loops over characters in each parsed word.",
+      "difficulty_signals": "prerequisite_knowledge: How do I loop through each character in a string? | interpretation: Student may lack Python string iteration prerequisite. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_053",
+      "name": "Using Python dictionaries for membership and lookup",
+      "definition": "Checking whether keys exist in dictionaries and retrieving or assigning values for child-node mappings.",
+      "node_kind": "teacher_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "standalone",
+      "level": "prerequisite",
+      "aliases": [
+        "dictionary lookup",
+        "membership testing",
+        "key-value access",
+        "in check"
+      ],
+      "student_must_know_do": "Uses child dictionary membership checks and assignments correctly.",
+      "difficulty_signals": "prerequisite_knowledge: How do I check if a key exists in a dictionary? | interpretation: Student may lack dictionary lookup prerequisite needed for child nodes. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_002",
+        "f24_a2_TASK_003"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_054",
+      "name": "Accessing and updating Python object attributes",
+      "definition": "Reading and modifying object attributes in class instances, including starter and added node metadata.",
+      "node_kind": "teacher_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "standalone",
+      "level": "prerequisite",
+      "aliases": [
+        "attribute access",
+        "object fields",
+        "class attributes",
+        "updating node metadata"
+      ],
+      "student_must_know_do": "Adds and uses node metadata correctly.",
+      "difficulty_signals": "prerequisite_knowledge: How do I add a new attribute like is_word to a Node? | interpretation: Student may lack object-attribute knowledge. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_002",
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_008"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_055",
+      "name": "Building and returning Python lists of results",
+      "definition": "Accumulating suggestion strings in a list and returning that list from a function.",
+      "node_kind": "teacher_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "standalone",
+      "level": "prerequisite",
+      "aliases": [
+        "list construction",
+        "result list",
+        "returning lists",
+        "appending suggestions"
+      ],
+      "student_must_know_do": "Returns a list of suggestions rather than printing only or returning None.",
+      "difficulty_signals": "prerequisite_knowledge: My function prints suggestions but returns None. | interpretation: Student may not understand returning a list of results. | sufficient_alone=True",
+      "difficulty_signal_sufficient_alone": true,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_056",
+      "name": "Controlling traversal loops over a frontier",
+      "definition": "Using loop conditions to repeatedly process queue, stack, or heap frontiers until traversal is complete.",
+      "node_kind": "teacher_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "standalone",
+      "level": "prerequisite",
+      "aliases": [
+        "frontier loop",
+        "while loop traversal",
+        "processing queue stack heap"
+      ],
+      "student_must_know_do": "Uses correct while-frontier loop behaviour in BFS, stack DFS, and UCS.",
+      "difficulty_signals": "prerequisite_knowledge: Why do we use while queue instead of one for loop? | interpretation: Student may not understand frontier-loop control. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_057",
+      "name": "Distinguishing tree search from graph search",
+      "definition": "Understanding that a prefix tree has tree-like traversal properties and usually differs from general graph search with repeated-state cycles.",
+      "node_kind": "teacher_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "standalone",
+      "level": "prerequisite",
+      "aliases": [
+        "tree search",
+        "graph search",
+        "visited-set distinction",
+        "repeated states"
+      ],
+      "student_must_know_do": "Does not overapply graph visited-set logic when traversing a prefix tree.",
+      "difficulty_signals": "conceptual_confusion: Do I need a visited set like graph search? | interpretation: Student may be mixing tree search and graph search. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_001",
+        "f24_a2_TASK_006",
+        "f24_a2_TASK_007",
+        "f24_a2_TASK_009"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_058",
+      "name": "Choosing text normalization rules",
+      "definition": "Deciding whether and how to normalize text, such as case handling, before inserting words or comparing prefixes.",
+      "node_kind": "teacher_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "standalone",
+      "level": "optional",
+      "aliases": [
+        "case sensitivity",
+        "normalization",
+        "lowercase conversion",
+        "text preprocessing"
+      ],
+      "student_must_know_do": "Applies normalization choice consistently if used.",
+      "difficulty_signals": "advanced_inquiry: Should I lowercase all entries before building the tree? | interpretation: Student is considering optional text normalization. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003",
+        "f24_a2_TASK_014"
+      ]
+    },
+    {
+      "id": "f24_a2_KC_059",
+      "name": "Handling punctuation and special characters as tree characters",
+      "definition": "Deciding whether punctuation or non-letter symbols should be inserted and searched as valid characters in the autocomplete tree.",
+      "node_kind": "teacher_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "standalone",
+      "level": "optional",
+      "aliases": [
+        "special-character handling",
+        "punctuation handling",
+        "non-letter characters"
+      ],
+      "student_must_know_do": "Handles symbols consistently if they appear in the corpus.",
+      "difficulty_signals": "advanced_inquiry: Should punctuation be treated like a normal character in the tree? | interpretation: Student is considering optional special-character handling. | sufficient_alone=False",
+      "difficulty_signal_sufficient_alone": false,
+      "related_task_ids": [
+        "f24_a2_TASK_003"
+      ]
+    },
+    {
+      "id": "f24_a2_SKC_001",
+      "name": "Identifying states, actions, and goals in a search problem",
+      "definition": "Distinguishing the current state, possible transitions/actions, and goal test when formulating a problem as search.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "declarative_concept",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_002",
+      "name": "Using rooted-tree vocabulary",
+      "definition": "Recognizing roots, nodes, child edges, paths, branches, and depth in a rooted tree.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_003",
+      "name": "Recognizing the string-prefix relation",
+      "definition": "Determining whether one string is the starting substring (prefix) of another string.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_004",
+      "name": "Distinguishing terminal nodes from leaf nodes",
+      "definition": "Understanding that a completed word can end at a node that still has children, so terminal status is not the same as being a leaf.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "conceptual_distinction",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_005",
+      "name": "Collecting multiple goals instead of stopping at the first",
+      "definition": "Understanding that a search can continue after finding one goal in order to collect additional valid goal states.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_006",
+      "name": "Splitting input text into word tokens",
+      "definition": "Using a consistent tokenization rule, such as whitespace splitting, to turn a document into individual candidate words.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_007",
+      "name": "Iterating over a collection of words",
+      "definition": "Using a loop to process each parsed word one at a time.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_008",
+      "name": "Understanding Python string iteration behavior",
+      "definition": "Knowing that iterating over a Python string yields its characters in sequence, one character value per iteration.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_009",
+      "name": "Checking whether a Python dictionary key exists",
+      "definition": "Using membership testing such as `key in dictionary` before lookup or insertion.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_010",
+      "name": "Retrieving a Python dictionary value by key",
+      "definition": "Accessing the value associated with an existing dictionary key.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_011",
+      "name": "Adding or updating a Python dictionary entry",
+      "definition": "Assigning a value to a dictionary key to create or update a mapping.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_012",
+      "name": "Applying create-or-reuse logic for child nodes",
+      "definition": "Creating a new child only when a character key is absent and otherwise reusing the existing child node.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_013",
+      "name": "Using dot notation to read and assign instance fields",
+      "definition": "Using expressions such as `node.is_word` and assignments such as `node.is_word = True` to access instance state.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_014",
+      "name": "Using a Boolean terminal flag",
+      "definition": "Representing completed-word status with a Boolean attribute and testing that flag during search.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_015",
+      "name": "Tracing shared-prefix branching",
+      "definition": "Recognizing where inserted words share the same path and where they diverge into separate child branches.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "conceptual_relationship",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_016",
+      "name": "Following a prefix path from the root",
+      "definition": "Traversing child mappings character by character to reach the node corresponding to a supplied prefix.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_017",
+      "name": "Handling empty and absent prefixes safely",
+      "definition": "Defining predictable behavior when the prefix is empty or cannot be followed in the tree.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_018",
+      "name": "Packaging frontier state as node plus path",
+      "definition": "Storing the current tree node together with enough path text to reconstruct a complete suggestion.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_019",
+      "name": "Concatenating characters to reconstruct words",
+      "definition": "Building complete suggestion strings by extending a prefix/path with traversed characters.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_020",
+      "name": "Appending discovered suggestions to a result list",
+      "definition": "Accumulating multiple completed suggestion strings in a Python list.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_021",
+      "name": "Distinguishing return values from printed output",
+      "definition": "Understanding that a function can print data without returning it, and that callers need an explicit return value.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_022",
+      "name": "Understanding FIFO queue semantics",
+      "definition": "Knowing that first-in, first-out processing expands older frontier entries before newer ones.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_023",
+      "name": "Using deque append and popleft for FIFO traversal",
+      "definition": "Using queue operations that implement FIFO behavior efficiently in Python.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_024",
+      "name": "Understanding LIFO stack semantics",
+      "definition": "Knowing that last-in, first-out processing expands the most recently added frontier entry first.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_025",
+      "name": "Using append and pop for an explicit stack",
+      "definition": "Using Python list operations to implement LIFO traversal.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_026",
+      "name": "Defining a recursion base case",
+      "definition": "Providing a stopping condition so a recursive traversal terminates safely.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_027",
+      "name": "Using recursive descent and backtracking",
+      "definition": "Calling a recursive traversal on children and returning to explore alternatives after a branch completes.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_028",
+      "name": "Using Python container truthiness in frontier loops",
+      "definition": "Understanding that non-empty queue, stack, or heap containers are truthy and can control a `while frontier:` traversal loop.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_029",
+      "name": "Preserving a consistent child-iteration order",
+      "definition": "Visiting child mappings in a chosen, repeatable order so output ordering is reproducible.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_030",
+      "name": "Accounting for stack push order in DFS",
+      "definition": "Understanding that pushing several children onto a LIFO stack can reverse the order in which they are later expanded.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_031",
+      "name": "Counting repeated transition occurrences",
+      "definition": "Incrementing counts when the same character transition is observed multiple times in the corpus.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_032",
+      "name": "Defining the context used for a transition frequency",
+      "definition": "Choosing whether a transition count is conditioned on an immediate predecessor or a longer prefix context.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_033",
+      "name": "Converting frequency to inverse cost",
+      "definition": "Applying an inverse relationship such as cost = 1/frequency so higher-frequency transitions receive lower costs.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "mathematical_calculation",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_034",
+      "name": "Summing transition costs into a path cost",
+      "definition": "Adding each new transition cost to the cost accumulated along the current candidate path.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "mathematical_calculation",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_035",
+      "name": "Understanding min-priority-queue semantics",
+      "definition": "Knowing that a min-heap or priority queue removes the frontier entry with the smallest priority value first.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_036",
+      "name": "Building heap entries with safe tie-breaking",
+      "definition": "Including a deterministic secondary value when equal priorities might otherwise force Python to compare non-orderable objects.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_037",
+      "name": "Distinguishing edge cost from cumulative path cost",
+      "definition": "Recognizing that UCS prioritizes total path cost rather than only the cost of the newest transition.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "conceptual_distinction",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_038",
+      "name": "Separating occurrence counts from unique output policy",
+      "definition": "Distinguishing how repeated corpus words affect frequency statistics from whether the same suggestion should be emitted more than once.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_039",
+      "name": "Understanding Python dictionary iteration order",
+      "definition": "Knowing that modern Python dictionaries preserve insertion order and that this can influence deterministic traversal output.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_040",
+      "name": "Avoiding post-search sorting when algorithm order matters",
+      "definition": "Recognizing that sorting a finished suggestion list can destroy the traversal order produced by BFS, DFS, or UCS.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "verification_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_041",
+      "name": "Constructing a tiny controlled test corpus",
+      "definition": "Creating a small set of words whose expected tree and search outputs can be reasoned about manually.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "verification_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_042",
+      "name": "Manually deriving the expected prefix tree",
+      "definition": "Drawing or tracing the expected nodes, branches, and terminal markers for a small word set.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "verification_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_043",
+      "name": "Manually tracing frontier expansion steps",
+      "definition": "Simulating queue, stack, or priority-queue contents step by step to predict search behavior.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "verification_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_044",
+      "name": "Comparing expected and actual outputs",
+      "definition": "Checking generated suggestions and order against a manually reasoned expectation.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "verification_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_045",
+      "name": "Localizing faults by pipeline stage",
+      "definition": "Separating failures in parsing, tree construction, prefix lookup, traversal, cost calculation, and output collection.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "debugging_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_046",
+      "name": "Explaining code through data structures and invariants",
+      "definition": "Describing what state is maintained, what each loop/call guarantees, and how the chosen data structure enforces the algorithm.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_047",
+      "name": "Documenting design assumptions consistently",
+      "definition": "Stating choices such as duplicate handling, frequency context, traversal order, tie-breaking, and normalization and using them consistently.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "procedural_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_048",
+      "name": "Connecting the intended search method to application flow",
+      "definition": "Ensuring the caller or GUI invokes the implemented BFS, DFS, or UCS method rather than an old placeholder or random method.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "implementation_skill",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_049",
+      "name": "Recognizing when a visited set is unnecessary in a tree",
+      "definition": "Understanding that a true prefix tree has unique parent paths and no cycles, unlike a general graph with repeated states.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "conceptual_distinction",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_050",
+      "name": "Using case conversion consistently in string comparison",
+      "definition": "Understanding operations such as lowercasing and applying the same conversion to both stored words and queried prefixes when normalization is chosen.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_051",
+      "name": "Recognizing punctuation and symbols during token processing",
+      "definition": "Identifying non-letter characters in parsed tokens so an implementation can consistently keep, remove, or otherwise handle them.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "prerequisite_knowledge",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_052",
+      "name": "Defining deterministic equal-priority behavior",
+      "definition": "Choosing a reproducible rule for ordering frontier entries that have equal UCS costs.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "problem_solving_strategy",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_053",
+      "name": "Distinguishing the call stack from an explicit DFS stack",
+      "definition": "Recognizing that recursive DFS stores pending work in function calls while iterative DFS stores it in an explicit data structure.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "conceptual_distinction",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_054",
+      "name": "Relating BFS depth to shorter completions",
+      "definition": "Understanding that level-order expansion reaches shallower terminal nodes before deeper ones, subject to same-depth child order.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_055",
+      "name": "Relating high frequency to lower UCS priority cost",
+      "definition": "Understanding why inverse-frequency costs make common transitions comparatively cheaper and therefore earlier candidates for UCS expansion.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_056",
+      "name": "Relating same-depth output order to child order",
+      "definition": "Understanding that BFS order among suggestions at the same depth depends on the order children are enqueued.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    },
+    {
+      "id": "f24_a2_SKC_057",
+      "name": "Relating DFS output to branch-first exploration",
+      "definition": "Understanding that DFS may return a deep completion before shallower completions in sibling branches because it follows one branch before backtracking.",
+      "node_kind": "derived_sub_kc",
+      "kc_type": "algorithmic_reasoning",
+      "granularity": "micro",
+      "level": "foundation",
+      "provenance": "inferred_from_teacher_codebook_and_required_implementation_reasoning"
+    }
+  ],
+  "edges": [
+    {
+      "source": "f24_a2_KC_001",
+      "target": "f24_a2_KC_002",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_001",
+      "target": "f24_a2_KC_002",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_001",
+      "target": "f24_a2_KC_003",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_001",
+      "target": "f24_a2_KC_003",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_003",
+      "target": "f24_a2_KC_010",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_001",
+      "target": "f24_a2_KC_004",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_001",
+      "target": "f24_a2_KC_004",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_004",
+      "target": "f24_a2_KC_027",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_001",
+      "target": "f24_a2_KC_005",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_001",
+      "target": "f24_a2_KC_005",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_005",
+      "target": "f24_a2_KC_028",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_006",
+      "target": "f24_a2_KC_007",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_006",
+      "target": "f24_a2_KC_008",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_052",
+      "target": "f24_a2_KC_008",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_006",
+      "target": "f24_a2_KC_009",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_007",
+      "target": "f24_a2_KC_009",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_008",
+      "target": "f24_a2_KC_009",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_052",
+      "target": "f24_a2_KC_009",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_053",
+      "target": "f24_a2_KC_009",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_006",
+      "target": "f24_a2_KC_010",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_003",
+      "target": "f24_a2_KC_010",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_054",
+      "target": "f24_a2_KC_010",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_006",
+      "target": "f24_a2_KC_011",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_051",
+      "target": "f24_a2_KC_011",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_006",
+      "target": "f24_a2_KC_012",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_009",
+      "target": "f24_a2_KC_012",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_006",
+      "target": "f24_a2_KC_013",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_009",
+      "target": "f24_a2_KC_013",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_013",
+      "target": "f24_a2_KC_027",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_014",
+      "target": "f24_a2_KC_015",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_014",
+      "target": "f24_a2_KC_016",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_016",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_014",
+      "target": "f24_a2_KC_017",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_017",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_014",
+      "target": "f24_a2_KC_018",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_018",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_014",
+      "target": "f24_a2_KC_019",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_016",
+      "target": "f24_a2_KC_019",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_017",
+      "target": "f24_a2_KC_019",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_018",
+      "target": "f24_a2_KC_019",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_014",
+      "target": "f24_a2_KC_020",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_019",
+      "target": "f24_a2_KC_020",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_013",
+      "target": "f24_a2_KC_021",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_021",
+      "target": "f24_a2_KC_022",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_010",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_013",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_027",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_055",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_056",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_021",
+      "target": "f24_a2_KC_023",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_010",
+      "target": "f24_a2_KC_023",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_013",
+      "target": "f24_a2_KC_023",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_023",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_027",
+      "target": "f24_a2_KC_023",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_055",
+      "target": "f24_a2_KC_023",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_023",
+      "target": "f24_a2_KC_024",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_021",
+      "target": "f24_a2_KC_024",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_010",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_013",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_027",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_055",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_056",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_021",
+      "target": "f24_a2_KC_025",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_017",
+      "target": "f24_a2_KC_025",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_023",
+      "target": "f24_a2_KC_025",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_024",
+      "target": "f24_a2_KC_025",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_021",
+      "target": "f24_a2_KC_026",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_051",
+      "target": "f24_a2_KC_026",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_021",
+      "target": "f24_a2_KC_027",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_004",
+      "target": "f24_a2_KC_027",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_021",
+      "target": "f24_a2_KC_028",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_005",
+      "target": "f24_a2_KC_028",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_029",
+      "target": "f24_a2_KC_030",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_031",
+      "target": "f24_a2_KC_030",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_030",
+      "target": "f24_a2_KC_031",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_029",
+      "target": "f24_a2_KC_031",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_051",
+      "target": "f24_a2_KC_031",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_029",
+      "target": "f24_a2_KC_032",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_030",
+      "target": "f24_a2_KC_032",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_032",
+      "target": "f24_a2_KC_033",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_029",
+      "target": "f24_a2_KC_033",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_032",
+      "target": "f24_a2_KC_033",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_029",
+      "target": "f24_a2_KC_034",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_010",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_013",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_027",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_033",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_055",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_056",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_034",
+      "target": "f24_a2_KC_042",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_035",
+      "target": "f24_a2_KC_036",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_036",
+      "target": "f24_a2_KC_041",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_035",
+      "target": "f24_a2_KC_037",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_035",
+      "target": "f24_a2_KC_038",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_036",
+      "target": "f24_a2_KC_038",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_039",
+      "target": "f24_a2_KC_040",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_037",
+      "target": "f24_a2_KC_040",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_039",
+      "target": "f24_a2_KC_041",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_036",
+      "target": "f24_a2_KC_041",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_037",
+      "target": "f24_a2_KC_041",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_039",
+      "target": "f24_a2_KC_042",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_034",
+      "target": "f24_a2_KC_042",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_039",
+      "target": "f24_a2_KC_043",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_028",
+      "target": "f24_a2_KC_043",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_028",
+      "target": "f24_a2_KC_043",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_044",
+      "target": "f24_a2_KC_045",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_009",
+      "target": "f24_a2_KC_045",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_044",
+      "target": "f24_a2_KC_046",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_016",
+      "target": "f24_a2_KC_046",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_044",
+      "target": "f24_a2_KC_047",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_017",
+      "target": "f24_a2_KC_047",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_025",
+      "target": "f24_a2_KC_047",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_044",
+      "target": "f24_a2_KC_048",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_018",
+      "target": "f24_a2_KC_048",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_044",
+      "target": "f24_a2_KC_049",
+      "relation": "parent_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_051",
+      "target": "f24_a2_KC_049",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_051",
+      "target": "f24_a2_KC_058",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_010",
+      "target": "f24_a2_KC_058",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_051",
+      "target": "f24_a2_KC_059",
+      "relation": "prerequisite_of",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_KC_010",
+      "target": "f24_a2_KC_059",
+      "relation": "commonly_confused_with",
+      "provenance": "source_stated",
+      "confidence": 1.0
+    },
+    {
+      "source": "f24_a2_SKC_001",
+      "target": "f24_a2_KC_001",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_002",
+      "target": "f24_a2_KC_001",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_003",
+      "target": "f24_a2_KC_002",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_016",
+      "target": "f24_a2_KC_002",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_004",
+      "target": "f24_a2_KC_003",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_014",
+      "target": "f24_a2_KC_003",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_002",
+      "target": "f24_a2_KC_004",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_019",
+      "target": "f24_a2_KC_004",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_005",
+      "target": "f24_a2_KC_005",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_020",
+      "target": "f24_a2_KC_005",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_002",
+      "target": "f24_a2_KC_006",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_015",
+      "target": "f24_a2_KC_006",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_003",
+      "target": "f24_a2_KC_007",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_015",
+      "target": "f24_a2_KC_007",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_006",
+      "target": "f24_a2_KC_008",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_007",
+      "target": "f24_a2_KC_008",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_008",
+      "target": "f24_a2_KC_009",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_009",
+      "target": "f24_a2_KC_009",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_010",
+      "target": "f24_a2_KC_009",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_011",
+      "target": "f24_a2_KC_009",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_012",
+      "target": "f24_a2_KC_009",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_004",
+      "target": "f24_a2_KC_010",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_013",
+      "target": "f24_a2_KC_010",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_014",
+      "target": "f24_a2_KC_010",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_031",
+      "target": "f24_a2_KC_011",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_038",
+      "target": "f24_a2_KC_011",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_015",
+      "target": "f24_a2_KC_012",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_042",
+      "target": "f24_a2_KC_012",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_003",
+      "target": "f24_a2_KC_013",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_016",
+      "target": "f24_a2_KC_013",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_017",
+      "target": "f24_a2_KC_013",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_022",
+      "target": "f24_a2_KC_014",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_024",
+      "target": "f24_a2_KC_014",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_035",
+      "target": "f24_a2_KC_014",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_022",
+      "target": "f24_a2_KC_015",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_024",
+      "target": "f24_a2_KC_015",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_035",
+      "target": "f24_a2_KC_015",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_022",
+      "target": "f24_a2_KC_016",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_054",
+      "target": "f24_a2_KC_016",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_056",
+      "target": "f24_a2_KC_016",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_024",
+      "target": "f24_a2_KC_017",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_057",
+      "target": "f24_a2_KC_017",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_035",
+      "target": "f24_a2_KC_018",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_037",
+      "target": "f24_a2_KC_018",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_043",
+      "target": "f24_a2_KC_019",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_044",
+      "target": "f24_a2_KC_019",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_054",
+      "target": "f24_a2_KC_019",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_057",
+      "target": "f24_a2_KC_019",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_044",
+      "target": "f24_a2_KC_020",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_055",
+      "target": "f24_a2_KC_020",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_018",
+      "target": "f24_a2_KC_021",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_020",
+      "target": "f24_a2_KC_021",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_028",
+      "target": "f24_a2_KC_021",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_018",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_020",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_023",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_028",
+      "target": "f24_a2_KC_022",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_026",
+      "target": "f24_a2_KC_023",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_027",
+      "target": "f24_a2_KC_023",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_020",
+      "target": "f24_a2_KC_023",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_018",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_020",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_025",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_028",
+      "target": "f24_a2_KC_024",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_030",
+      "target": "f24_a2_KC_024",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_053",
+      "target": "f24_a2_KC_025",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_030",
+      "target": "f24_a2_KC_025",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_029",
+      "target": "f24_a2_KC_026",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_039",
+      "target": "f24_a2_KC_026",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_018",
+      "target": "f24_a2_KC_027",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_019",
+      "target": "f24_a2_KC_027",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_005",
+      "target": "f24_a2_KC_028",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_020",
+      "target": "f24_a2_KC_028",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_031",
+      "target": "f24_a2_KC_029",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_032",
+      "target": "f24_a2_KC_029",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_033",
+      "target": "f24_a2_KC_029",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_034",
+      "target": "f24_a2_KC_029",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_035",
+      "target": "f24_a2_KC_029",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_009",
+      "target": "f24_a2_KC_030",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_010",
+      "target": "f24_a2_KC_030",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_011",
+      "target": "f24_a2_KC_030",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_031",
+      "target": "f24_a2_KC_030",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_032",
+      "target": "f24_a2_KC_031",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_047",
+      "target": "f24_a2_KC_031",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_033",
+      "target": "f24_a2_KC_032",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_034",
+      "target": "f24_a2_KC_033",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_037",
+      "target": "f24_a2_KC_033",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_018",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_028",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_035",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_036",
+      "target": "f24_a2_KC_034",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_052",
+      "target": "f24_a2_KC_034",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_041",
+      "target": "f24_a2_KC_035",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_044",
+      "target": "f24_a2_KC_035",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_040",
+      "target": "f24_a2_KC_036",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_044",
+      "target": "f24_a2_KC_036",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_041",
+      "target": "f24_a2_KC_037",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_042",
+      "target": "f24_a2_KC_037",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_043",
+      "target": "f24_a2_KC_037",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_044",
+      "target": "f24_a2_KC_037",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_043",
+      "target": "f24_a2_KC_038",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_044",
+      "target": "f24_a2_KC_038",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_045",
+      "target": "f24_a2_KC_039",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_044",
+      "target": "f24_a2_KC_039",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_042",
+      "target": "f24_a2_KC_040",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_045",
+      "target": "f24_a2_KC_040",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_029",
+      "target": "f24_a2_KC_041",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_030",
+      "target": "f24_a2_KC_041",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_040",
+      "target": "f24_a2_KC_041",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_045",
+      "target": "f24_a2_KC_041",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_034",
+      "target": "f24_a2_KC_042",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_036",
+      "target": "f24_a2_KC_042",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_045",
+      "target": "f24_a2_KC_042",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_052",
+      "target": "f24_a2_KC_042",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_005",
+      "target": "f24_a2_KC_043",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_045",
+      "target": "f24_a2_KC_043",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_046",
+      "target": "f24_a2_KC_044",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_012",
+      "target": "f24_a2_KC_045",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_014",
+      "target": "f24_a2_KC_045",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_046",
+      "target": "f24_a2_KC_045",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_022",
+      "target": "f24_a2_KC_046",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_018",
+      "target": "f24_a2_KC_046",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_046",
+      "target": "f24_a2_KC_046",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_053",
+      "target": "f24_a2_KC_047",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_046",
+      "target": "f24_a2_KC_047",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_057",
+      "target": "f24_a2_KC_047",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_031",
+      "target": "f24_a2_KC_048",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_033",
+      "target": "f24_a2_KC_048",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_034",
+      "target": "f24_a2_KC_048",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_035",
+      "target": "f24_a2_KC_048",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_046",
+      "target": "f24_a2_KC_048",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_038",
+      "target": "f24_a2_KC_049",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_047",
+      "target": "f24_a2_KC_049",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_048",
+      "target": "f24_a2_KC_050",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_038",
+      "target": "f24_a2_KC_051",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_047",
+      "target": "f24_a2_KC_051",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_008",
+      "target": "f24_a2_KC_052",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_009",
+      "target": "f24_a2_KC_053",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_010",
+      "target": "f24_a2_KC_053",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_011",
+      "target": "f24_a2_KC_053",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_013",
+      "target": "f24_a2_KC_054",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_020",
+      "target": "f24_a2_KC_055",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_021",
+      "target": "f24_a2_KC_055",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_028",
+      "target": "f24_a2_KC_056",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_002",
+      "target": "f24_a2_KC_057",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_049",
+      "target": "f24_a2_KC_057",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_050",
+      "target": "f24_a2_KC_058",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_047",
+      "target": "f24_a2_KC_058",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_051",
+      "target": "f24_a2_KC_059",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_SKC_047",
+      "target": "f24_a2_KC_059",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.9,
+      "rationale": "Reusable lower-level knowledge identified as necessary or helpful for mastering this teacher KC."
+    },
+    {
+      "source": "f24_a2_KC_006",
+      "target": "f24_a2_KC_001",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "The prefix-tree representation provides the concrete state space used by the autocomplete search model."
+    },
+    {
+      "source": "f24_a2_KC_003",
+      "target": "f24_a2_KC_005",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Recognizing terminal entries as goals supports understanding why multiple goal states can be collected."
+    },
+    {
+      "source": "f24_a2_KC_007",
+      "target": "f24_a2_KC_012",
+      "relation": "prerequisite_of",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "A student must understand shared-prefix representation before accurately tracing the constructed tree."
+    },
+    {
+      "source": "f24_a2_KC_010",
+      "target": "f24_a2_KC_040",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Incorrect terminal representation is a common cause of missing suggestions."
+    },
+    {
+      "source": "f24_a2_KC_013",
+      "target": "f24_a2_KC_040",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Incorrect prefix-endpoint lookup is a common cause of missing suggestions."
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_016",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Correct FIFO frontier policy underlies breadth-first ordering."
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_017",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Correct LIFO/recursion frontier policy underlies depth-first behavior."
+    },
+    {
+      "source": "f24_a2_KC_015",
+      "target": "f24_a2_KC_018",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Priority-based frontier policy underlies UCS lowest-cost expansion."
+    },
+    {
+      "source": "f24_a2_KC_016",
+      "target": "f24_a2_KC_022",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Understanding BFS ordering helps implement the corresponding queue traversal correctly."
+    },
+    {
+      "source": "f24_a2_KC_017",
+      "target": "f24_a2_KC_023",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Understanding DFS behavior helps implement recursive depth-first traversal correctly."
+    },
+    {
+      "source": "f24_a2_KC_017",
+      "target": "f24_a2_KC_024",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Understanding DFS behavior helps implement explicit-stack traversal correctly."
+    },
+    {
+      "source": "f24_a2_KC_025",
+      "target": "f24_a2_KC_047",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Comparing recursive and stack DFS helps explain DFS implementation choices."
+    },
+    {
+      "source": "f24_a2_KC_026",
+      "target": "f24_a2_KC_036",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Child traversal order directly affects the suggestion order that must be preserved."
+    },
+    {
+      "source": "f24_a2_KC_034",
+      "target": "f24_a2_KC_042",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Priority-queue implementation details directly inform diagnosis of UCS ordering and tie errors."
+    },
+    {
+      "source": "f24_a2_KC_036",
+      "target": "f24_a2_KC_041",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Preserving algorithm order helps distinguish genuine traversal differences from accidental reordering."
+    },
+    {
+      "source": "f24_a2_KC_037",
+      "target": "f24_a2_KC_039",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Controlled testing provides evidence for localizing implementation faults."
+    },
+    {
+      "source": "f24_a2_KC_038",
+      "target": "f24_a2_KC_020",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Output-list comparison provides evidence for informal judgments about suggestion usefulness."
+    },
+    {
+      "source": "f24_a2_KC_044",
+      "target": "f24_a2_KC_049",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Clear implementation explanations require assumptions to be stated explicitly and consistently."
+    },
+    {
+      "source": "f24_a2_KC_045",
+      "target": "f24_a2_KC_044",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Explaining construction logic is one part of explaining the overall implementation."
+    },
+    {
+      "source": "f24_a2_KC_046",
+      "target": "f24_a2_KC_044",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Explaining BFS logic is one part of explaining the overall implementation."
+    },
+    {
+      "source": "f24_a2_KC_047",
+      "target": "f24_a2_KC_044",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Explaining DFS logic is one part of explaining the overall implementation."
+    },
+    {
+      "source": "f24_a2_KC_048",
+      "target": "f24_a2_KC_044",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Explaining UCS logic is one part of explaining the overall implementation."
+    },
+    {
+      "source": "f24_a2_KC_051",
+      "target": "f24_a2_KC_049",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Consistent implementation assumptions support a coherent written justification."
+    },
+    {
+      "source": "f24_a2_KC_058",
+      "target": "f24_a2_KC_051",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Normalization choices must be integrated into the overall consistency policy."
+    },
+    {
+      "source": "f24_a2_KC_059",
+      "target": "f24_a2_KC_051",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Punctuation handling choices must be integrated into the overall consistency policy."
+    },
+    {
+      "source": "f24_a2_KC_057",
+      "target": "f24_a2_KC_001",
+      "relation": "supports",
+      "provenance": "inferred",
+      "confidence": 0.85,
+      "rationale": "Understanding tree-search properties supports the overall tree-search framing."
+    }
+  ]
+}

@@ -1,0 +1,674 @@
+[
+  {
+    "kc_id": "f24_a2_KC_001",
+    "canonical_name": "Modelling autocomplete as tree search",
+    "definition": "Understanding autocomplete as search over a character tree where prefixes define where search begins and completions are found by traversing paths.",
+    "aliases": [
+      "autocomplete as search",
+      "autocomplete search problem"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_002",
+    "canonical_name": "Identifying the prefix endpoint as the autocomplete search start state",
+    "definition": "Determining that search begins at the node reached after following all characters of the typed prefix.",
+    "aliases": [
+      "initial state",
+      "prefix node",
+      "start node",
+      "prefix endpoint"
+    ],
+    "parent_kc_id": "f24_a2_KC_001"
+  },
+  {
+    "kc_id": "f24_a2_KC_003",
+    "canonical_name": "Recognizing completed entries as autocomplete goal states",
+    "definition": "Understanding that a valid word ending is a goal state in autocomplete search.",
+    "aliases": [
+      "goal node",
+      "word ending",
+      "terminal entry",
+      "complete entry"
+    ],
+    "parent_kc_id": "f24_a2_KC_001"
+  },
+  {
+    "kc_id": "f24_a2_KC_004",
+    "canonical_name": "Representing suggestions as paths through a character tree",
+    "definition": "Understanding that a suggestion is formed by concatenating characters along a path in the tree.",
+    "aliases": [
+      "path as suggestion",
+      "complete path",
+      "character path"
+    ],
+    "parent_kc_id": "f24_a2_KC_001"
+  },
+  {
+    "kc_id": "f24_a2_KC_005",
+    "canonical_name": "Treating autocomplete as a multiple-goal search problem",
+    "definition": "Continuing search to collect multiple valid completions rather than stopping after the first one.",
+    "aliases": [
+      "multiple goals",
+      "many completions",
+      "collect all suggestions"
+    ],
+    "parent_kc_id": "f24_a2_KC_001"
+  },
+  {
+    "kc_id": "f24_a2_KC_006",
+    "canonical_name": "Representing and constructing autocomplete prefix trees",
+    "definition": "Understanding and building the character-based prefix tree used for autocomplete entries.",
+    "aliases": [
+      "trie construction",
+      "prefix-tree representation",
+      "character tree construction"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_007",
+    "canonical_name": "Representing words in a prefix tree",
+    "definition": "Understanding how individual words are stored by sharing common prefixes and branching at differing characters.",
+    "aliases": [
+      "trie representation",
+      "shared prefixes",
+      "character tree",
+      "branching tree"
+    ],
+    "parent_kc_id": "f24_a2_KC_006"
+  },
+  {
+    "kc_id": "f24_a2_KC_008",
+    "canonical_name": "Parsing the document into individual autocomplete words",
+    "definition": "Splitting the input document into individual words that can be inserted into the autocomplete prefix tree.",
+    "aliases": [
+      "word parsing",
+      "document splitting",
+      "individual word extraction",
+      "document.split"
+    ],
+    "parent_kc_id": "f24_a2_KC_006"
+  },
+  {
+    "kc_id": "f24_a2_KC_009",
+    "canonical_name": "Constructing a prefix tree by inserting character paths",
+    "definition": "Inserting each word into the tree character by character, creating child nodes only when needed.",
+    "aliases": [
+      "tree insertion",
+      "character insertion",
+      "node creation",
+      "child-node insertion"
+    ],
+    "parent_kc_id": "f24_a2_KC_006"
+  },
+  {
+    "kc_id": "f24_a2_KC_010",
+    "canonical_name": "Designing terminal-state representation for completed entries",
+    "definition": "Implementing a way to mark or recognize that a node corresponds to a completed word.",
+    "aliases": [
+      "terminal marker",
+      "end-of-word marker",
+      "complete-word node",
+      "goal marker"
+    ],
+    "parent_kc_id": "f24_a2_KC_006"
+  },
+  {
+    "kc_id": "f24_a2_KC_011",
+    "canonical_name": "Choosing a duplicate-entry handling strategy",
+    "definition": "Deciding how repeated words affect suggestions, frequency counts, and output duplication.",
+    "aliases": [
+      "duplicate handling",
+      "deduplication",
+      "repeated entries",
+      "repeated words"
+    ],
+    "parent_kc_id": "f24_a2_KC_006"
+  },
+  {
+    "kc_id": "f24_a2_KC_012",
+    "canonical_name": "Tracing and visualizing prefix-tree construction",
+    "definition": "Manually tracing inserted words and producing a tree diagram showing shared prefixes and branches.",
+    "aliases": [
+      "tree diagram",
+      "visualizing trie",
+      "manual tree tracing",
+      "drawing prefix tree"
+    ],
+    "parent_kc_id": "f24_a2_KC_006"
+  },
+  {
+    "kc_id": "f24_a2_KC_013",
+    "canonical_name": "Locating and validating the prefix endpoint before search",
+    "definition": "Traversing the tree according to a prefix and handling absent or empty prefixes safely before running search.",
+    "aliases": [
+      "prefix lookup",
+      "prefix traversal",
+      "validating prefix",
+      "finding start node"
+    ],
+    "parent_kc_id": "f24_a2_KC_006"
+  },
+  {
+    "kc_id": "f24_a2_KC_014",
+    "canonical_name": "Distinguishing autocomplete search strategies",
+    "definition": "Understanding how BFS, DFS, and UCS differ in frontier policy, expansion order, and output behaviour.",
+    "aliases": [
+      "search strategy comparison",
+      "BFS vs DFS vs UCS",
+      "traversal strategy distinction"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_015",
+    "canonical_name": "Selecting the correct frontier policy for BFS, DFS, and UCS",
+    "definition": "Choosing FIFO queue behaviour for BFS, LIFO/recursion behaviour for DFS, and priority-based behaviour for UCS.",
+    "aliases": [
+      "frontier policy",
+      "queue vs stack vs priority queue",
+      "expansion rule"
+    ],
+    "parent_kc_id": "f24_a2_KC_014"
+  },
+  {
+    "kc_id": "f24_a2_KC_016",
+    "canonical_name": "Explaining breadth-first autocomplete ordering",
+    "definition": "Explaining why BFS explores level by level and tends to return shorter completions earlier.",
+    "aliases": [
+      "BFS ordering",
+      "level-order search",
+      "breadth-first suggestions",
+      "shorter completions first"
+    ],
+    "parent_kc_id": "f24_a2_KC_014"
+  },
+  {
+    "kc_id": "f24_a2_KC_017",
+    "canonical_name": "Explaining depth-first autocomplete traversal",
+    "definition": "Explaining why DFS follows one branch deeply before backtracking to alternatives.",
+    "aliases": [
+      "DFS traversal",
+      "deep-first search",
+      "branch-first search",
+      "backtracking traversal"
+    ],
+    "parent_kc_id": "f24_a2_KC_014"
+  },
+  {
+    "kc_id": "f24_a2_KC_018",
+    "canonical_name": "Explaining UCS as lowest-cumulative-cost expansion",
+    "definition": "Explaining that UCS expands the path with the lowest accumulated cost first.",
+    "aliases": [
+      "uniform-cost search",
+      "lowest-cost expansion",
+      "cost-prioritized search"
+    ],
+    "parent_kc_id": "f24_a2_KC_014"
+  },
+  {
+    "kc_id": "f24_a2_KC_019",
+    "canonical_name": "Comparing traversal-order differences among BFS, DFS, and UCS",
+    "definition": "Comparing how BFS, DFS, and UCS produce different suggestion orders from the same prefix.",
+    "aliases": [
+      "algorithm order comparison",
+      "traversal-order comparison",
+      "suggestion-order differences"
+    ],
+    "parent_kc_id": "f24_a2_KC_014"
+  },
+  {
+    "kc_id": "f24_a2_KC_020",
+    "canonical_name": "Interpreting informal suggestion quality differences across algorithms",
+    "definition": "Interpreting whether different algorithm outputs appear more useful or natural without using a formal metric.",
+    "aliases": [
+      "suggestion quality",
+      "informal quality comparison",
+      "usefulness of suggestions"
+    ],
+    "parent_kc_id": "f24_a2_KC_014"
+  },
+  {
+    "kc_id": "f24_a2_KC_021",
+    "canonical_name": "Implementing autocomplete search algorithms",
+    "definition": "Implementing BFS, DFS, and UCS traversal logic to generate autocomplete suggestions from the prefix subtree.",
+    "aliases": [
+      "search implementation",
+      "traversal implementation",
+      "autocomplete algorithms"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_022",
+    "canonical_name": "Implementing BFS autocomplete with a FIFO frontier",
+    "definition": "Implementing BFS using a first-in, first-out frontier while tracking paths and collecting completed suggestions.",
+    "aliases": [
+      "queue-based BFS",
+      "FIFO BFS",
+      "deque BFS",
+      "breadth-first implementation"
+    ],
+    "parent_kc_id": "f24_a2_KC_021"
+  },
+  {
+    "kc_id": "f24_a2_KC_023",
+    "canonical_name": "Implementing recursive DFS autocomplete",
+    "definition": "Implementing DFS using recursive calls to explore child paths and collect completed suggestions.",
+    "aliases": [
+      "recursive DFS",
+      "recursive traversal",
+      "DFS helper function"
+    ],
+    "parent_kc_id": "f24_a2_KC_021"
+  },
+  {
+    "kc_id": "f24_a2_KC_024",
+    "canonical_name": "Implementing stack-based DFS autocomplete",
+    "definition": "Implementing DFS using an explicit stack to explore child paths and collect completed suggestions.",
+    "aliases": [
+      "iterative DFS",
+      "explicit stack DFS",
+      "LIFO DFS"
+    ],
+    "parent_kc_id": "f24_a2_KC_021"
+  },
+  {
+    "kc_id": "f24_a2_KC_025",
+    "canonical_name": "Comparing recursive DFS with stack-based DFS",
+    "definition": "Explaining how recursive DFS and stack-based DFS differ in control flow, state storage, and possible output order.",
+    "aliases": [
+      "recursion vs stack",
+      "recursive vs iterative DFS",
+      "DFS implementation comparison"
+    ],
+    "parent_kc_id": "f24_a2_KC_021"
+  },
+  {
+    "kc_id": "f24_a2_KC_026",
+    "canonical_name": "Choosing child traversal order for deterministic suggestions",
+    "definition": "Selecting and consistently applying an order for visiting child nodes so suggestion order is explainable.",
+    "aliases": [
+      "child order",
+      "traversal order",
+      "deterministic output",
+      "insertion-order traversal"
+    ],
+    "parent_kc_id": "f24_a2_KC_021"
+  },
+  {
+    "kc_id": "f24_a2_KC_027",
+    "canonical_name": "Maintaining search-path state to reconstruct complete suggestions",
+    "definition": "Carrying enough path information during traversal to return the full word, not only a suffix or node value.",
+    "aliases": [
+      "path tracking",
+      "path-state tuple",
+      "full suggestion reconstruction",
+      "suffix vs full completion"
+    ],
+    "parent_kc_id": "f24_a2_KC_021"
+  },
+  {
+    "kc_id": "f24_a2_KC_028",
+    "canonical_name": "Continuing search after finding one completion",
+    "definition": "Ensuring the algorithm keeps exploring after the first valid completion so all relevant suggestions can be returned.",
+    "aliases": [
+      "avoid early stopping",
+      "collect all completions",
+      "continue after goal"
+    ],
+    "parent_kc_id": "f24_a2_KC_021"
+  },
+  {
+    "kc_id": "f24_a2_KC_029",
+    "canonical_name": "Implementing UCS cost and priority-queue logic",
+    "definition": "Implementing the frequency, cost, and priority-queue logic needed for UCS autocomplete suggestions.",
+    "aliases": [
+      "UCS cost model",
+      "frequency-cost implementation",
+      "UCS priority logic"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_030",
+    "canonical_name": "Storing transition-frequency information for UCS",
+    "definition": "Recording how often character transitions occur so UCS costs can be calculated.",
+    "aliases": [
+      "frequency counting",
+      "transition counts",
+      "edge frequency",
+      "prefix frequency storage"
+    ],
+    "parent_kc_id": "f24_a2_KC_029"
+  },
+  {
+    "kc_id": "f24_a2_KC_031",
+    "canonical_name": "Selecting a UCS transition-frequency model",
+    "definition": "Choosing whether UCS transition frequencies are based on immediate previous character context or full-prefix context.",
+    "aliases": [
+      "immediate-character frequency",
+      "full-prefix frequency",
+      "UCS frequency model"
+    ],
+    "parent_kc_id": "f24_a2_KC_029"
+  },
+  {
+    "kc_id": "f24_a2_KC_032",
+    "canonical_name": "Calculating inverse-frequency transition costs",
+    "definition": "Converting transition frequency into cost so more frequent transitions receive lower costs.",
+    "aliases": [
+      "inverse frequency",
+      "frequency-to-cost conversion",
+      "transition cost"
+    ],
+    "parent_kc_id": "f24_a2_KC_029"
+  },
+  {
+    "kc_id": "f24_a2_KC_033",
+    "canonical_name": "Accumulating path costs across character transitions",
+    "definition": "Computing cumulative UCS path cost by adding transition costs along a candidate suggestion path.",
+    "aliases": [
+      "cumulative cost",
+      "path-cost sum",
+      "accumulated transition cost"
+    ],
+    "parent_kc_id": "f24_a2_KC_029"
+  },
+  {
+    "kc_id": "f24_a2_KC_034",
+    "canonical_name": "Implementing UCS autocomplete with a priority queue",
+    "definition": "Implementing UCS with a priority queue or heap that expands the lowest-cost path and handles equal-cost entries safely.",
+    "aliases": [
+      "priority queue UCS",
+      "heapq",
+      "heap-based UCS",
+      "tie handling"
+    ],
+    "parent_kc_id": "f24_a2_KC_029"
+  },
+  {
+    "kc_id": "f24_a2_KC_035",
+    "canonical_name": "Verifying and interpreting autocomplete outputs",
+    "definition": "Checking generated autocomplete outputs and using them to reason about algorithm behaviour.",
+    "aliases": [
+      "output checking",
+      "autocomplete verification",
+      "suggestion interpretation"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_036",
+    "canonical_name": "Interpreting and preserving algorithm-specific suggestion order",
+    "definition": "Recording suggestions in the exact order produced by the algorithm and interpreting that order correctly.",
+    "aliases": [
+      "preserving output order",
+      "displayed order",
+      "algorithm-specific order"
+    ],
+    "parent_kc_id": "f24_a2_KC_035"
+  },
+  {
+    "kc_id": "f24_a2_KC_037",
+    "canonical_name": "Verifying autocomplete behaviour with controlled prefixes and corpora",
+    "definition": "Testing with controlled prefixes or small corpora to check whether tree construction and search behaviour are plausible.",
+    "aliases": [
+      "controlled testing",
+      "small-corpus testing",
+      "prefix testing",
+      "direct method testing"
+    ],
+    "parent_kc_id": "f24_a2_KC_035"
+  },
+  {
+    "kc_id": "f24_a2_KC_038",
+    "canonical_name": "Comparing generated suggestion lists across algorithms",
+    "definition": "Using BFS, DFS, and UCS output lists as evidence to compare algorithm behaviour.",
+    "aliases": [
+      "comparing outputs",
+      "suggestion-list comparison",
+      "generated-output comparison"
+    ],
+    "parent_kc_id": "f24_a2_KC_035"
+  },
+  {
+    "kc_id": "f24_a2_KC_039",
+    "canonical_name": "Diagnosing autocomplete implementation errors",
+    "definition": "Identifying and reasoning about faults in tree construction, traversal, cost handling, or output generation.",
+    "aliases": [
+      "autocomplete debugging",
+      "search bug diagnosis",
+      "implementation error diagnosis"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_040",
+    "canonical_name": "Diagnosing missing autocomplete suggestions",
+    "definition": "Identifying why expected suggestions are absent, such as insertion errors, terminal-marker errors, or prefix-lookup errors.",
+    "aliases": [
+      "missing results",
+      "absent completions",
+      "lost suggestions"
+    ],
+    "parent_kc_id": "f24_a2_KC_039"
+  },
+  {
+    "kc_id": "f24_a2_KC_041",
+    "canonical_name": "Diagnosing incorrect suggestion order",
+    "definition": "Identifying why suggestions appear in an unexpected order due to frontier use, child traversal order, or output sorting.",
+    "aliases": [
+      "wrong order",
+      "unexpected output order",
+      "reversed DFS order"
+    ],
+    "parent_kc_id": "f24_a2_KC_039"
+  },
+  {
+    "kc_id": "f24_a2_KC_042",
+    "canonical_name": "Diagnosing priority-queue ordering or tie-breaking errors",
+    "definition": "Identifying UCS errors caused by incorrect priority values, equal-cost handling, or unsafe heap entries.",
+    "aliases": [
+      "heap errors",
+      "UCS tie errors",
+      "priority queue bug",
+      "equal-cost error"
+    ],
+    "parent_kc_id": "f24_a2_KC_039"
+  },
+  {
+    "kc_id": "f24_a2_KC_043",
+    "canonical_name": "Diagnosing premature stopping after one completion",
+    "definition": "Identifying when a search implementation incorrectly returns after the first completion instead of collecting multiple suggestions.",
+    "aliases": [
+      "early return",
+      "first-result-only bug",
+      "premature goal stopping"
+    ],
+    "parent_kc_id": "f24_a2_KC_039"
+  },
+  {
+    "kc_id": "f24_a2_KC_044",
+    "canonical_name": "Explaining implementation logic for tree construction and search",
+    "definition": "Explaining the reasoning and control flow behind submitted tree-construction and search implementations.",
+    "aliases": [
+      "code intuition",
+      "implementation explanation",
+      "algorithm explanation"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_045",
+    "canonical_name": "Explaining prefix-tree construction logic",
+    "definition": "Explaining how the implementation parses words, inserts characters, reuses shared prefixes, and marks completed entries.",
+    "aliases": [
+      "explaining build_tree",
+      "tree-construction explanation",
+      "insertion explanation"
+    ],
+    "parent_kc_id": "f24_a2_KC_044"
+  },
+  {
+    "kc_id": "f24_a2_KC_046",
+    "canonical_name": "Explaining BFS implementation logic",
+    "definition": "Explaining how the BFS implementation uses a FIFO frontier, tracks paths, and collects suggestions.",
+    "aliases": [
+      "BFS explanation",
+      "explaining queue traversal",
+      "BFS code intuition"
+    ],
+    "parent_kc_id": "f24_a2_KC_044"
+  },
+  {
+    "kc_id": "f24_a2_KC_047",
+    "canonical_name": "Explaining DFS implementation logic",
+    "definition": "Explaining how the DFS implementation explores branches, uses recursion or a stack, and collects suggestions.",
+    "aliases": [
+      "DFS explanation",
+      "explaining stack traversal",
+      "explaining recursive DFS"
+    ],
+    "parent_kc_id": "f24_a2_KC_044"
+  },
+  {
+    "kc_id": "f24_a2_KC_048",
+    "canonical_name": "Explaining UCS implementation logic",
+    "definition": "Explaining how the UCS implementation uses frequency-derived costs and a priority queue to order suggestions.",
+    "aliases": [
+      "UCS explanation",
+      "explaining cost-based traversal",
+      "UCS code intuition"
+    ],
+    "parent_kc_id": "f24_a2_KC_044"
+  },
+  {
+    "kc_id": "f24_a2_KC_049",
+    "canonical_name": "Explaining implementation assumptions clearly",
+    "definition": "Stating and justifying choices about duplicates, UCS frequency model, child traversal order, tie-breaking, and optional text handling.",
+    "aliases": [
+      "explaining assumptions",
+      "documenting design choices",
+      "justifying implementation choices"
+    ],
+    "parent_kc_id": "f24_a2_KC_044"
+  },
+  {
+    "kc_id": "f24_a2_KC_050",
+    "canonical_name": "Integrating implemented suggestion methods into the starter application",
+    "definition": "Connecting completed BFS, DFS, or UCS methods to the provided application flow so the GUI or main program uses the intended algorithm.",
+    "aliases": [
+      "method reference integration",
+      "starter-code integration",
+      "replacing random suggestions",
+      "GUI integration"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_051",
+    "canonical_name": "Applying consistent implementation assumptions",
+    "definition": "Applying chosen assumptions consistently across parsing, duplicates, cost calculation, traversal order, and reporting.",
+    "aliases": [
+      "consistent design choices",
+      "assumption consistency",
+      "implementation policy consistency"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_052",
+    "canonical_name": "Iterating over characters in Python strings",
+    "definition": "Using Python string iteration to process each character in a word.",
+    "aliases": [
+      "string iteration",
+      "character iteration",
+      "looping through strings"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_053",
+    "canonical_name": "Using Python dictionaries for membership and lookup",
+    "definition": "Checking whether keys exist in dictionaries and retrieving or assigning values for child-node mappings.",
+    "aliases": [
+      "dictionary lookup",
+      "membership testing",
+      "key-value access",
+      "in check"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_054",
+    "canonical_name": "Accessing and updating Python object attributes",
+    "definition": "Reading and modifying object attributes in class instances, including starter and added node metadata.",
+    "aliases": [
+      "attribute access",
+      "object fields",
+      "class attributes",
+      "updating node metadata"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_055",
+    "canonical_name": "Building and returning Python lists of results",
+    "definition": "Accumulating suggestion strings in a list and returning that list from a function.",
+    "aliases": [
+      "list construction",
+      "result list",
+      "returning lists",
+      "appending suggestions"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_056",
+    "canonical_name": "Controlling traversal loops over a frontier",
+    "definition": "Using loop conditions to repeatedly process queue, stack, or heap frontiers until traversal is complete.",
+    "aliases": [
+      "frontier loop",
+      "while loop traversal",
+      "processing queue stack heap"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_057",
+    "canonical_name": "Distinguishing tree search from graph search",
+    "definition": "Understanding that a prefix tree has tree-like traversal properties and usually differs from general graph search with repeated-state cycles.",
+    "aliases": [
+      "tree search",
+      "graph search",
+      "visited-set distinction",
+      "repeated states"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_058",
+    "canonical_name": "Choosing text normalization rules",
+    "definition": "Deciding whether and how to normalize text, such as case handling, before inserting words or comparing prefixes.",
+    "aliases": [
+      "case sensitivity",
+      "normalization",
+      "lowercase conversion",
+      "text preprocessing"
+    ],
+    "parent_kc_id": null
+  },
+  {
+    "kc_id": "f24_a2_KC_059",
+    "canonical_name": "Handling punctuation and special characters as tree characters",
+    "definition": "Deciding whether punctuation or non-letter symbols should be inserted and searched as valid characters in the autocomplete tree.",
+    "aliases": [
+      "special-character handling",
+      "punctuation handling",
+      "non-letter characters"
+    ],
+    "parent_kc_id": null
+  }
+]
