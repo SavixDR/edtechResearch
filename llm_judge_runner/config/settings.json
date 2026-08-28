@@ -1,0 +1,19 @@
+{
+  "experiment_name": "llm_as_judge_bias_collection",
+  "suite_version": "1.0",
+  "prompt_version": "V3",
+  "cases_file": "data/experiment_cases.jsonl",
+  "models_file": "config/models.json",
+  "prompt_variants_file": "config/prompt_variants.json",
+  "assignments_file": "config/assignments.json",
+  "results_root": "outputs",
+  "max_output_tokens": 8000,
+  "default_repeats": 1,
+  "parse_mode": "strict",
+  "output_schema_file": "assets/judge_v3_output_schema.json",
+  "request_timeout_seconds": 300,
+  "max_api_attempts": 2,
+  "retry_backoff_seconds": 3,
+  "save_case_snapshot": true,
+  "save_prompt_snapshots": true
+}

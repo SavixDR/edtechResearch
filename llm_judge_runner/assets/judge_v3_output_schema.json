@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "V3 LLM Judge Output",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "conversation_id": {"type": "string", "minLength": 1},
+    "chunk_id": {"type": "string", "minLength": 1},
+    "assignment_id": {"type": "string", "minLength": 1},
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "task_id": {"type": "string", "minLength": 1},
+          "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 2,
+            "items": {"type": "string", "minLength": 1}
+          }
+        },
+        "required": ["task_id", "confidence", "evidence"]
+      }
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kc_id": {"type": "string", "minLength": 1},
+          "linked_task_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "difficulty_evidence",
+              "misconception",
+              "information_seeking",
+              "resolved_understanding",
+              "neutral_mention",
+              "insufficient_evidence"
+            ]
+          },
+          "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 2,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "note": {"type": "string", "minLength": 1}
+        },
+        "required": ["kc_id", "linked_task_ids", "status", "confidence", "evidence", "note"]
+      }
+    },
+    "flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "no_relevant_kc_evidence",
+          "no_identifiable_task",
+          "too_short",
+          "too_ambiguous",
+          "mostly_solution_generation_request",
+          "requires_work_or_output_not_present",
+          "possible_academic_integrity_issue",
+          "direct_kc_outside_task_mapping"
+        ]
+      }
+    }
+  },
+  "required": ["conversation_id", "chunk_id", "assignment_id", "tasks", "labels", "flags"]
+}

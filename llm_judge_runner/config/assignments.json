@@ -1,0 +1,8 @@
+{
+  "f24_a2": {"codebook_file": "../data/KC/f24_a2/f24_a2_kc_model.json"},
+  "f24_a3": {"codebook_file": "../data/KC/f24_a3/f24_a3_corrected_kc_model.json"},
+  "f24_a4": {"codebook_file": "../data/KC/f24_a4/f24_a4_corrected_kc_model.json"},
+  "f24_a5": {"codebook_file": "../data/KC/f24_a5/f24_a5_corrected_kc_model.json"},
+  "f24_a6": {"codebook_file": "../data/KC/f24_a6/f24_a6_corrected_complete_kc_model.json"},
+  "f24_a7": {"codebook_file": "../data/KC/f24_a7/f24_a7_corrected_kc_model.json"}
+}

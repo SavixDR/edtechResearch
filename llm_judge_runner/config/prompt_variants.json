@@ -1,0 +1,7 @@
+{
+  "canonical": {
+    "description": "Frozen V3 prompt used for T0/T1 and non-position variants.",
+    "file": "assets/prompts/judge_v3_canonical.txt",
+    "user_file": "assets/prompts/judge_v3_user.txt"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "claude_opus_5": {
+    "display_name": "Claude Opus 5",
+    "provider": "anthropic",
+    "adapter": "anthropic_messages",
+    "model_id": "claude-opus-5",
+    "country": "US",
+    "enabled": true,
+    "api_key_env": "ANTHROPIC_API_KEY",
+    "reasoning_effort": null,
+    "temperature": null,
+    "extra": {}
+  },
+  "gpt_5_6_sol": {
+    "display_name": "GPT 5.6 Sol",
+    "provider": "openai",
+    "adapter": "openai_responses",
+    "model_id": "gpt-5.6-sol",
+    "country": "US",
+    "enabled": true,
+    "api_key_env": "OPENAI_API_KEY",
+    "reasoning_effort": "medium",
+    "temperature": null,
+    "extra": {"store": false}
+  },
+  "gemini_3_1_pro": {
+    "display_name": "Gemini 3.1 Pro",
+    "provider": "google",
+    "adapter": "gemini_generate_content",
+    "model_id": "gemini-3.1-pro",
+    "country": "US",
+    "enabled": true,
+    "api_key_env": "GEMINI_API_KEY",
+    "reasoning_effort": null,
+    "temperature": null,
+    "extra": {}
+  },
+  "glm_5_3": {
+    "display_name": "GLM 5.3",
+    "provider": "z.ai",
+    "adapter": "openai_compatible_chat",
+    "model_id": "glm-5.3",
+    "country": "China",
+    "enabled": true,
+    "api_key_env": "ZAI_API_KEY",
+    "base_url_env": "ZAI_BASE_URL",
+    "reasoning_effort": null,
+    "temperature": null,
+    "extra": {}
+  },
+  "kimi_k3": {
+    "display_name": "Kimi K3",
+    "provider": "Moonshot AI",
+    "adapter": "openai_compatible_chat",
+    "model_id": "kimi-k3",
+    "country": "China",
+    "enabled": true,
+    "api_key_env": "KIMI_API_KEY",
+    "base_url_env": "KIMI_BASE_URL",
+    "reasoning_effort": "max",
+    "temperature": null,
+    "extra": {}
+  },
+  "deepseek_v4_pro_0813": {
+    "display_name": "DeepSeek-V4 Pro-0813",
+    "provider": "DeepSeek",
+    "adapter": "openai_compatible_chat",
+    "model_id": "deepseek-v4-pro",
+    "requested_version_label": "DeepSeek-V4-Pro-0813",
+    "country": "China",
+    "enabled": true,
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "base_url_env": "DEEPSEEK_BASE_URL",
+    "reasoning_effort": "high",
+    "temperature": null,
+    "extra": {"thinking": {"type": "enabled"}}
+  },
+  "qwen_3_8_max": {
+    "display_name": "Qwen 3.8 Max",
+    "provider": "Alibaba",
+    "adapter": "openai_compatible_chat",
+    "model_id": "qwen3.8-max",
+    "country": "China",
+    "enabled": true,
+    "api_key_env": "DASHSCOPE_API_KEY",
+    "base_url_env": "QWEN_BASE_URL",
+    "reasoning_effort": null,
+    "temperature": null,
+    "extra": {}
+  }
+}

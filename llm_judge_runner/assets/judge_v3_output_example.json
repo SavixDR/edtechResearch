@@ -1,0 +1,23 @@
+{
+  "conversation_id": "conversation_001",
+  "chunk_id": "conversation_001",
+  "assignment_id": "f24_a3",
+  "tasks": [
+    {
+      "task_id": "f24_a3_TASK_001",
+      "confidence": 0.9,
+      "evidence": ["I am working on the first task."]
+    }
+  ],
+  "labels": [
+    {
+      "kc_id": "f24_a3_KC_001",
+      "linked_task_ids": ["f24_a3_TASK_001"],
+      "status": "information_seeking",
+      "confidence": 0.85,
+      "evidence": ["How do I start this part?"],
+      "note": "The student explicitly asks how to begin the relevant task."
+    }
+  ],
+  "flags": []
+}
