@@ -6,6 +6,7 @@ from typing import Any
 
 
 def parse_output(text: str, mode: str = "strict") -> tuple[dict[str, Any] | None, str | None, str | None]:
+    """Parse model output while preserving whether any wrapper was removed."""
     stripped = (text or "").strip()
     if not stripped:
         return None, None, "empty_output"
@@ -19,25 +20,41 @@ def parse_output(text: str, mode: str = "strict") -> tuple[dict[str, Any] | None
         if mode == "strict":
             return None, None, f"json_parse_error: {exc}"
 
-    # Optional tolerant mode. Parse method is recorded so later analysis can distinguish repaired outputs.
+    if mode != "tolerant":
+        return None, None, f"json_parse_error: {exc}"
+
+    # Some providers emit literal tabs/newlines inside JSON string values.
+    # Recover these only in tolerant mode and retain the recovery method.
+    try:
+        obj = json.loads(stripped, strict=False)
+        if isinstance(obj, dict):
+            return obj, "direct_json_nonstandard_control_chars", None
+    except json.JSONDecodeError:
+        pass
+
+    # Tolerant mode accepts common presentation wrappers but records the repair method.
     fence = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", stripped, flags=re.I | re.S)
     if fence:
         try:
-            obj = json.loads(fence.group(1))
+            obj = json.loads(fence.group(1), strict=False)
             if isinstance(obj, dict):
-                return obj, "json_code_fence", None
+                method = "json_code_fence"
+                if "\t" in fence.group(1) or any(ord(char) < 0x20 and char not in "\r\n\t" for char in fence.group(1)):
+                    method = "json_code_fence_nonstandard_control_chars"
+                return obj, method, None
         except json.JSONDecodeError:
             pass
 
-    first = stripped.find("{")
-    last = stripped.rfind("}")
-    if first >= 0 and last > first:
+    # raw_decode finds the end of a complete nested object without guessing from
+    # the last brace, so prose or braces inside the JSON cannot corrupt extraction.
+    decoder = json.JSONDecoder(strict=False)
+    for first in (match.start() for match in re.finditer(r"\{", stripped)):
         try:
-            obj = json.loads(stripped[first:last + 1])
+            obj, _ = decoder.raw_decode(stripped[first:])
             if isinstance(obj, dict):
                 return obj, "extracted_json_object", None
-        except json.JSONDecodeError as exc:
-            return None, None, f"json_parse_error_after_tolerant_extraction: {exc}"
+        except json.JSONDecodeError:
+            continue
 
     return None, None, "no_parseable_json_object"
 
@@ -65,10 +82,6 @@ def validate_context(
         return []
 
     errors: list[str] = []
-    for field in ("conversation_id", "chunk_id", "assignment_id"):
-        if parsed.get(field) != case.get(field):
-            errors.append(f"{field}: expected {case.get(field)!r}, got {parsed.get(field)!r}")
-
     allowed_tasks = set(valid_task_ids)
     allowed_kcs = set(valid_kc_ids)
     returned_task_ids: list[str] = []

@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM Judge Results Studio</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f1ea;
+      --surface: #fffdf8;
+      --surface-2: #f0ede5;
+      --ink: #19231f;
+      --muted: #66716c;
+      --line: #d8d4ca;
+      --accent: #0b735f;
+      --accent-2: #d7efe8;
+      --blue: #3267d6;
+      --amber: #aa6500;
+      --red: #b43b3b;
+      --purple: #6b54b5;
+      --shadow: 0 18px 50px rgba(35, 45, 40, .09);
+      --radius: 18px;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #111714;
+      --surface: #18201c;
+      --surface-2: #212b26;
+      --ink: #edf4f0;
+      --muted: #a2aea8;
+      --line: #334039;
+      --accent: #5ed2b7;
+      --accent-2: #1b493e;
+      --blue: #79a0ff;
+      --amber: #ffc36b;
+      --red: #ff8a8a;
+      --purple: #bca9ff;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .28);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 8% -10%, rgba(11, 115, 95, .15), transparent 34rem),
+        radial-gradient(circle at 100% 5%, rgba(50, 103, 214, .10), transparent 28rem),
+        var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    .shell { width: min(1480px, calc(100% - 32px)); margin: 0 auto; padding-bottom: 56px; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      padding: 24px 0 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .brand-mark {
+      width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 auto;
+      border-radius: 13px; color: white; font-weight: 900; letter-spacing: -.08em;
+      background: linear-gradient(145deg, #0b735f, #154a80);
+      box-shadow: 0 9px 24px rgba(11, 115, 95, .22);
+    }
+    .brand h1 { margin: 0; font-size: 18px; letter-spacing: -.03em; }
+    .brand p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn {
+      border: 1px solid var(--line); background: var(--surface); padding: 9px 13px;
+      border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px;
+      transition: .16s ease; box-shadow: 0 1px 1px rgba(0,0,0,.03);
+    }
+    .btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .btn.primary { color: white; background: var(--accent); border-color: var(--accent); }
+    [data-theme="dark"] .btn.primary { color: #0d241e; }
+    .btn.danger { color: var(--red); }
+    .btn.icon { width: 39px; height: 39px; padding: 0; display: grid; place-items: center; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+    .drop {
+      position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr auto;
+      align-items: center; gap: 24px; min-height: 150px; padding: 28px 30px;
+      border: 1.5px dashed color-mix(in srgb, var(--accent), var(--line) 45%);
+      border-radius: var(--radius); background: color-mix(in srgb, var(--surface), transparent 4%);
+      box-shadow: var(--shadow); transition: .2s ease;
+    }
+    .drop::after {
+      content: ""; position: absolute; width: 220px; height: 220px; right: -70px; top: -100px;
+      border-radius: 50%; background: var(--accent-2); opacity: .75; pointer-events: none;
+    }
+    .drop.dragging { border-color: var(--accent); transform: scale(1.005); background: var(--accent-2); }
+    .drop-copy { position: relative; z-index: 1; }
+    .drop-kicker { color: var(--accent); text-transform: uppercase; letter-spacing: .14em; font-weight: 900; font-size: 11px; }
+    .drop h2 { margin: 8px 0 7px; font-size: clamp(22px, 3vw, 34px); line-height: 1.06; letter-spacing: -.045em; }
+    .drop p { margin: 0; max-width: 760px; color: var(--muted); line-height: 1.55; font-size: 14px; }
+    .drop .primary { position: relative; z-index: 1; padding: 12px 17px; }
+    #fileInput { display: none; }
+    .privacy { margin: 10px 2px 0; color: var(--muted); font-size: 11px; }
+
+    .file-strip { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 0; }
+    .file-chip {
+      display: inline-flex; align-items: center; gap: 7px; max-width: 310px; padding: 7px 10px;
+      border: 1px solid var(--line); border-radius: 999px; background: var(--surface);
+      font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.03);
+    }
+    .file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-chip b { color: var(--accent); }
+
+    .workspace { display: none; margin-top: 22px; }
+    .workspace.ready { display: block; }
+    .tabs {
+      display: flex; gap: 5px; padding: 5px; width: fit-content; max-width: 100%; overflow-x: auto;
+      border: 1px solid var(--line); background: var(--surface); border-radius: 13px;
+    }
+    .tab {
+      white-space: nowrap; border: 0; background: transparent; color: var(--muted); cursor: pointer;
+      border-radius: 9px; padding: 9px 14px; font-weight: 800; font-size: 13px;
+    }
+    .tab.active { background: var(--ink); color: var(--surface); }
+    .panel { display: none; margin-top: 18px; }
+    .panel.active { display: block; }
+
+    .metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+    .metric {
+      min-height: 104px; padding: 17px; border: 1px solid var(--line); border-radius: 15px;
+      background: var(--surface); box-shadow: 0 7px 24px rgba(0,0,0,.035);
+    }
+    .metric .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; }
+    .metric .value { margin-top: 11px; font-size: clamp(21px, 2.2vw, 30px); font-weight: 900; letter-spacing: -.05em; }
+    .metric .hint { margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .grid-2 { display: grid; grid-template-columns: 1.18fr .82fr; gap: 14px; margin-top: 14px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 8px 28px rgba(0,0,0,.035); overflow: hidden; }
+    .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 19px 20px 13px; }
+    .card-head h3 { margin: 0; font-size: 16px; letter-spacing: -.025em; }
+    .card-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .card-body { padding: 3px 20px 20px; }
+    .bar-row { display: grid; grid-template-columns: minmax(110px, 1fr) 2.2fr 46px; align-items: center; gap: 10px; margin: 11px 0; font-size: 12px; }
+    .bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--blue)); }
+    .bar-count { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+    .table-wrap { overflow: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; }
+    th {
+      position: sticky; top: 0; z-index: 1; padding: 11px 12px; text-align: left;
+      background: var(--surface-2); color: var(--muted); text-transform: uppercase;
+      letter-spacing: .055em; font-size: 10px; white-space: nowrap;
+    }
+    td { padding: 12px; border-top: 1px solid var(--line); vertical-align: top; }
+    tbody tr:hover { background: color-mix(in srgb, var(--accent-2), transparent 55%); }
+    .click-row { cursor: pointer; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .muted { color: var(--muted); }
+    .strong { font-weight: 800; }
+    .nowrap { white-space: nowrap; }
+    .truncate { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .status, .pill {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 999px;
+      background: var(--surface-2); color: var(--muted); font-size: 10px; font-weight: 800;
+      vertical-align: middle; line-height: 1.2;
+    }
+    .status.ok, .status.resolved_understanding { color: var(--accent); background: var(--accent-2); }
+    .status.schema_error, .status.api_error, .status.parse_error, .status.difficulty_evidence { color: var(--red); background: color-mix(in srgb, var(--red), transparent 87%); }
+    .status.information_seeking { color: var(--blue); background: color-mix(in srgb, var(--blue), transparent 87%); }
+    .status.neutral_mention { color: var(--purple); background: color-mix(in srgb, var(--purple), transparent 88%); }
+    .status.insufficient_evidence { color: var(--amber); background: color-mix(in srgb, var(--amber), transparent 87%); }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    .filters {
+      display: grid; grid-template-columns: minmax(220px, 2fr) repeat(5, minmax(120px, 1fr)) auto;
+      gap: 8px; padding: 13px; margin-bottom: 12px; border: 1px solid var(--line);
+      border-radius: 15px; background: var(--surface);
+    }
+    .control {
+      width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 9px;
+      padding: 9px 10px; color: var(--ink); background: var(--bg); outline: none; font-size: 12px;
+    }
+    .control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent), transparent 83%); }
+    .results-card { min-height: 310px; }
+    .table-footer {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px;
+    }
+    .pager { display: flex; align-items: center; gap: 7px; }
+
+    .compare-head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 14px; margin-bottom: 12px; }
+    .compare-head h2 { margin: 0; font-size: 22px; letter-spacing: -.04em; }
+    .compare-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .compare-select { min-width: min(480px, 55vw); }
+    .comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-bottom: 15px; }
+    .model-panel { padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+    .model-panel h3 { margin: 0; font-size: 16px; }
+    .model-panel .meta { margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .mini-section { margin-top: 15px; }
+    .mini-title { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; font-weight: 900; margin-bottom: 7px; }
+    .tag-cloud { display: flex; flex-wrap: wrap; gap: 5px; }
+    .empty {
+      padding: 38px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line);
+      border-radius: 14px; background: color-mix(in srgb, var(--surface), transparent 30%);
+    }
+    .notice { padding: 12px 14px; border-radius: 11px; border: 1px solid var(--line); font-size: 12px; line-height: 1.5; }
+    .notice.warn { border-color: color-mix(in srgb, var(--amber), var(--line)); background: color-mix(in srgb, var(--amber), transparent 92%); }
+    .notice.bad { border-color: color-mix(in srgb, var(--red), var(--line)); background: color-mix(in srgb, var(--red), transparent 92%); }
+    .log-list { display: grid; gap: 8px; }
+    .log-item { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 12px; }
+
+    .drawer-backdrop {
+      position: fixed; inset: 0; z-index: 20; display: none; background: rgba(9, 17, 13, .45);
+      backdrop-filter: blur(3px);
+    }
+    .drawer-backdrop.open { display: block; }
+    .drawer {
+      position: fixed; z-index: 21; top: 0; right: 0; width: min(720px, 96vw); height: 100vh;
+      transform: translateX(105%); transition: transform .23s ease; overflow-y: auto;
+      border-left: 1px solid var(--line); background: var(--bg); box-shadow: -20px 0 60px rgba(0,0,0,.18);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-top {
+      position: sticky; top: 0; z-index: 3; display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--bg), transparent 5%);
+      backdrop-filter: blur(16px);
+    }
+    .drawer-top h2 { margin: 0; font-size: 17px; letter-spacing: -.025em; overflow-wrap: anywhere; }
+    .drawer-top p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .drawer-content { padding: 16px 20px 36px; }
+    .detail-section { margin-bottom: 13px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+    .detail-title { padding: 13px 15px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .07em; }
+    .detail-body { padding: 14px 15px; }
+    .kv { display: grid; grid-template-columns: 145px minmax(0, 1fr); gap: 8px 13px; font-size: 12px; }
+    .kv dt { color: var(--muted); }
+    .kv dd { margin: 0; overflow-wrap: anywhere; }
+    .task, .label-card { padding: 12px; border: 1px solid var(--line); border-radius: 11px; margin-bottom: 8px; background: var(--bg); }
+    .task:last-child, .label-card:last-child { margin-bottom: 0; }
+    .item-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
+    .evidence { margin: 7px 0 0; padding: 9px 10px; white-space: pre-wrap; overflow-wrap: anywhere; border-left: 3px solid var(--accent); border-radius: 0 7px 7px 0; background: var(--surface-2); color: var(--ink); font-size: 11px; line-height: 1.45; }
+    .note { margin-top: 8px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    details summary { cursor: pointer; font-weight: 800; font-size: 12px; }
+    pre {
+      max-height: 460px; overflow: auto; padding: 12px; border-radius: 10px; background: #101714;
+      color: #d8f4e9; font: 11px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+    .toast {
+      position: fixed; z-index: 50; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+      padding: 10px 14px; border-radius: 10px; background: var(--ink); color: var(--surface);
+      box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: .2s ease; font-size: 12px; font-weight: 800;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 1100px) {
+      .metrics { grid-template-columns: repeat(3, 1fr); }
+      .filters { grid-template-columns: repeat(3, 1fr); }
+      .filters .search { grid-column: span 2; }
+    }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 20px, 1480px); }
+      .topbar { align-items: flex-start; }
+      .brand p { display: none; }
+      .drop { grid-template-columns: 1fr; padding: 23px 20px; }
+      .drop .primary { width: fit-content; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .grid-2 { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: repeat(2, 1fr); }
+      .filters .search { grid-column: span 2; }
+      .compare-head { grid-template-columns: 1fr; }
+      .compare-select { min-width: 0; width: 100%; }
+      .kv { grid-template-columns: 1fr; gap: 3px; }
+      .kv dd { margin-bottom: 7px; }
+      .hide-mobile { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">JR</div>
+        <div>
+          <h1>LLM Judge Results Studio</h1>
+          <p>Inspect, combine, compare, and export research runs.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn icon" id="themeBtn" type="button" title="Toggle theme" aria-label="Toggle theme">◐</button>
+        <button class="btn" id="addBtn" type="button">Add files</button>
+        <button class="btn danger" id="resetBtn" type="button" disabled>Reset</button>
+      </div>
+    </header>
+
+    <section class="drop" id="dropZone">
+      <div class="drop-copy">
+        <div class="drop-kicker">Local · private · offline</div>
+        <h2>Turn raw judge logs into a readable study.</h2>
+        <p>Drop one or many <span class="mono">results.jsonl</span> or JSON files. Separate model runs are aligned by case, while retry attempts are resolved automatically.</p>
+      </div>
+      <button class="btn primary" id="chooseBtn" type="button">Choose result files</button>
+      <input id="fileInput" type="file" accept=".json,.jsonl,application/json,application/x-ndjson" multiple>
+    </section>
+    <div class="privacy">Your files never leave this browser. No network requests are made.</div>
+    <div class="file-strip" id="fileStrip"></div>
+
+    <main class="workspace" id="workspace">
+      <nav class="tabs" aria-label="Viewer sections">
+        <button class="tab active" type="button" data-tab="overview">Overview</button>
+        <button class="tab" type="button" data-tab="results">Results</button>
+        <button class="tab" type="button" data-tab="compare">Model comparison</button>
+        <button class="tab" type="button" data-tab="quality">Data quality <span id="qualityCount"></span></button>
+      </nav>
+
+      <section class="panel active" id="panel-overview">
+        <div class="metrics" id="metrics"></div>
+        <div class="grid-2">
+          <article class="card">
+            <div class="card-head"><div><h3>Models</h3><p>Coverage, reliability, speed, and spend.</p></div></div>
+            <div class="table-wrap" id="modelSummary"></div>
+          </article>
+          <article class="card">
+            <div class="card-head"><div><h3>Response health</h3><p>Latest retry attempt per execution.</p></div></div>
+            <div class="card-body" id="statusBars"></div>
+          </article>
+        </div>
+        <div class="grid-2">
+          <article class="card">
+            <div class="card-head"><div><h3>Knowledge-component statuses</h3><p>All labels emitted in the active records.</p></div></div>
+            <div class="card-body" id="labelBars"></div>
+          </article>
+          <article class="card">
+            <div class="card-head"><div><h3>Most frequent flags</h3><p>Record-level review signals.</p></div></div>
+            <div class="card-body" id="flagBars"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-results">
+        <div class="filters">
+          <input class="control search" id="searchInput" type="search" placeholder="Search case, model, task, KC, evidence, flag…">
+          <select class="control" id="modelFilter" aria-label="Filter by model"></select>
+          <select class="control" id="runFilter" aria-label="Filter by run"></select>
+          <select class="control" id="assignmentFilter" aria-label="Filter by assignment"></select>
+          <select class="control" id="statusFilter" aria-label="Filter by response status"></select>
+          <select class="control" id="labelFilter" aria-label="Filter by label status"></select>
+          <select class="control" id="testFilter" aria-label="Filter by test"></select>
+          <select class="control" id="variantFilter" aria-label="Filter by variant"></select>
+          <select class="control" id="flagFilter" aria-label="Filter by flag"></select>
+          <select class="control" id="confidenceFilter" aria-label="Filter by minimum confidence">
+            <option value="">Any confidence</option>
+            <option value="0.5">Confidence ≥ 50%</option>
+            <option value="0.7">Confidence ≥ 70%</option>
+            <option value="0.8">Confidence ≥ 80%</option>
+            <option value="0.9">Confidence ≥ 90%</option>
+            <option value="0.95">Confidence ≥ 95%</option>
+          </select>
+          <button class="btn" id="clearFiltersBtn" type="button">Clear</button>
+        </div>
+        <article class="card results-card">
+          <div class="card-head">
+            <div><h3>Result records</h3><p id="resultCount">0 results</p></div>
+            <div class="actions">
+              <button class="btn" id="exportCsvBtn" type="button">Export filtered CSV</button>
+              <button class="btn primary" id="exportJsonlBtn" type="button">Export combined JSONL</button>
+            </div>
+          </div>
+          <div class="table-wrap" id="resultsTable"></div>
+          <div class="table-footer">
+            <span id="pageInfo"></span>
+            <div class="pager">
+              <button class="btn" id="prevBtn" type="button">Previous</button>
+              <button class="btn" id="nextBtn" type="button">Next</button>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel" id="panel-compare">
+        <div class="compare-head">
+          <div><h2>Case-level model comparison</h2><p>Cases are aligned by case ID and repeat. Select one to inspect model outputs side by side.</p></div>
+          <select class="control compare-select" id="caseSelect"></select>
+        </div>
+        <div id="caseComparison"></div>
+        <article class="card">
+          <div class="card-head"><div><h3>Coverage matrix</h3><p>Each cell shows response status, task count, and label count. Select a cell for details.</p></div></div>
+          <div class="table-wrap" id="coverageMatrix"></div>
+        </article>
+      </section>
+
+      <section class="panel" id="panel-quality">
+        <div id="qualitySummary"></div>
+        <div class="log-list" id="qualityLog" style="margin-top:12px"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-top">
+      <div><h2 id="drawerTitle">Record</h2><p id="drawerSub"></p></div>
+      <button class="btn icon" id="closeDrawerBtn" type="button" aria-label="Close details">×</button>
+    </div>
+    <div class="drawer-content" id="drawerContent"></div>
+  </aside>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var state = {
+        imported: [],
+        active: [],
+        files: [],
+        log: [],
+        page: 1,
+        pageSize: 25,
+        uid: 0,
+        selectedCase: ""
+      };
+
+      var el = function (id) { return document.getElementById(id); };
+      var escMap = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
+      var esc = function (value) {
+        return String(value === null || value === undefined ? "" : value).replace(/[&<>"']/g, function (c) { return escMap[c]; });
+      };
+      var arr = function (value) { return Array.isArray(value) ? value : []; };
+      var get = function (obj, path, fallback) {
+        var value = path.split(".").reduce(function (cursor, key) {
+          return cursor !== null && cursor !== undefined ? cursor[key] : undefined;
+        }, obj);
+        return value === undefined || value === null ? fallback : value;
+      };
+      var number = function (value) {
+        var parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      };
+      var formatInt = function (value) { return Math.round(number(value)).toLocaleString(); };
+      var formatMoney = function (value) {
+        return number(value).toLocaleString(undefined, { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 4 });
+      };
+      var formatMs = function (value) {
+        var ms = number(value);
+        return ms >= 1000 ? (ms / 1000).toFixed(1) + "s" : Math.round(ms) + "ms";
+      };
+      var slugStatus = function (value) { return String(value || "unknown").toLowerCase().replace(/[^a-z0-9_-]/g, "_"); };
+      var statusPill = function (value) {
+        var text = value || "unknown";
+        return '<span class="status ' + slugStatus(text) + '"><i class="dot"></i>' + esc(text) + '</span>';
+      };
+      var modelName = function (record) {
+        return get(record, "judge.display_name", get(record, "judge.model_key", "Unknown model"));
+      };
+      var parsedOutput = function (record) { return get(record, "response.parsed_json", {}) || {}; };
+      var tasks = function (record) { return arr(parsedOutput(record).tasks); };
+      var labels = function (record) { return arr(parsedOutput(record).labels); };
+      var flags = function (record) { return arr(parsedOutput(record).flags); };
+      var caseKey = function (record) {
+        return [
+          get(record, "case.case_id", "unknown-case"),
+          "repeat " + get(record, "judge.repeat_index", 1)
+        ].join(" · ");
+      };
+      var retryKey = function (wrapper) {
+        var record = wrapper.record;
+        var run = get(record, "run_id", "");
+        var execution = get(record, "execution_key", "");
+        return run && execution ? run + "::" + execution : "__unique__" + wrapper.uid;
+      };
+
+      function toast(message) {
+        var node = el("toast");
+        node.textContent = message;
+        node.classList.add("show");
+        window.clearTimeout(toast.timer);
+        toast.timer = window.setTimeout(function () { node.classList.remove("show"); }, 2200);
+      }
+
+      function setTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+        try { localStorage.setItem("judge-viewer-theme", theme); } catch (error) {}
+      }
+
+      function parseText(text, fileName) {
+        var records = [];
+        var issues = [];
+        var trimmed = text.replace(/^\uFEFF/, "").trim();
+        if (!trimmed) {
+          issues.push({ level: "error", file: fileName, message: "The file is empty." });
+          return { records: records, issues: issues };
+        }
+
+        try {
+          var whole = JSON.parse(trimmed);
+          if (Array.isArray(whole)) {
+            records = whole.map(function (record, index) { return { record: record, line: index + 1 }; });
+          } else if (whole && Array.isArray(whole.results)) {
+            records = whole.results.map(function (record, index) { return { record: record, line: index + 1 }; });
+          } else if (whole && typeof whole === "object") {
+            records = [{ record: whole, line: 1 }];
+          }
+          return { records: records, issues: issues };
+        } catch (jsonError) {
+          trimmed.split(/\r?\n/).forEach(function (line, index) {
+            if (!line.trim()) return;
+            try {
+              var parsed = JSON.parse(line);
+              if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Line is not a JSON object");
+              records.push({ record: parsed, line: index + 1 });
+            } catch (lineError) {
+              issues.push({ level: "error", file: fileName, line: index + 1, message: lineError.message });
+            }
+          });
+        }
+        return { records: records, issues: issues };
+      }
+
+      function validateRecord(record, fileName, line) {
+        var missing = [];
+        ["run_id", "execution_key", "case.case_id", "judge.model_key", "response.status"].forEach(function (path) {
+          if (get(record, path, "") === "") missing.push(path);
+        });
+        if (missing.length) {
+          state.log.push({
+            level: "warning",
+            file: fileName,
+            line: line,
+            message: "Record is missing expected fields: " + missing.join(", ")
+          });
+        }
+        var validationErrors = arr(get(record, "response.validation_errors", []));
+        if (validationErrors.length) {
+          state.log.push({
+            level: "warning",
+            file: fileName,
+            line: line,
+            message: validationErrors.length + " output-schema validation error(s): " + validationErrors.join("; ")
+          });
+        }
+      }
+
+      function rebuildActive() {
+        var chosen = new Map();
+        var superseded = [];
+        state.imported.forEach(function (wrapper) {
+          var key = retryKey(wrapper);
+          var current = chosen.get(key);
+          var attempt = number(get(wrapper.record, "response.collection_attempt", 1));
+          var currentAttempt = current ? number(get(current.record, "response.collection_attempt", 1)) : -1;
+          if (!current || attempt > currentAttempt || (attempt === currentAttempt && wrapper.uid > current.uid)) {
+            if (current) superseded.push(current);
+            chosen.set(key, wrapper);
+          } else {
+            superseded.push(wrapper);
+          }
+        });
+        state.active = Array.from(chosen.values());
+        state.superseded = superseded;
+      }
+
+      async function importFiles(fileList) {
+        var files = Array.from(fileList || []);
+        if (!files.length) return;
+        for (var i = 0; i < files.length; i += 1) {
+          var file = files[i];
+          try {
+            var text = await file.text();
+            var parsed = parseText(text, file.name);
+            parsed.issues.forEach(function (issue) { state.log.push(issue); });
+            var added = 0;
+            parsed.records.forEach(function (item) {
+              if (!item.record || typeof item.record !== "object" || Array.isArray(item.record)) {
+                state.log.push({ level: "error", file: file.name, line: item.line, message: "Expected a result object." });
+                return;
+              }
+              state.uid += 1;
+              validateRecord(item.record, file.name, item.line);
+              state.imported.push({ record: item.record, file: file.name, line: item.line, uid: state.uid });
+              added += 1;
+            });
+            state.files.push({ name: file.name, size: file.size, records: added, issues: parsed.issues.length });
+          } catch (error) {
+            state.log.push({ level: "error", file: file.name, message: "Could not read file: " + error.message });
+          }
+        }
+        rebuildActive();
+        state.page = 1;
+        state.selectedCase = "";
+        renderAll();
+        el("fileInput").value = "";
+        toast(state.active.length + " active records loaded");
+      }
+
+      function counts(values) {
+        var map = new Map();
+        values.forEach(function (value) {
+          var key = String(value || "unknown");
+          map.set(key, (map.get(key) || 0) + 1);
+        });
+        return Array.from(map.entries()).map(function (entry) { return { name: entry[0], count: entry[1] }; }).sort(function (a, b) {
+          return b.count - a.count || a.name.localeCompare(b.name);
+        });
+      }
+
+      function distinct(values) {
+        return Array.from(new Set(values.filter(function (value) { return value !== null && value !== undefined && value !== ""; }))).sort(function (a, b) {
+          return String(a).localeCompare(String(b));
+        });
+      }
+
+      function renderFiles() {
+        el("fileStrip").innerHTML = state.files.map(function (file) {
+          return '<div class="file-chip" title="' + esc(file.name) + '"><b>✓</b><span>' + esc(file.name) + '</span><small class="muted">' + formatInt(file.records) + '</small></div>';
+        }).join("");
+      }
+
+      function metric(label, value, hint) {
+        return '<div class="metric"><div class="label">' + esc(label) + '</div><div class="value">' + esc(value) + '</div><div class="hint">' + esc(hint || "") + '</div></div>';
+      }
+
+      function renderBars(targetId, data, limit) {
+        var target = el(targetId);
+        var subset = data.slice(0, limit || 12);
+        var max = subset.length ? subset[0].count : 0;
+        target.innerHTML = subset.length ? subset.map(function (item) {
+          var width = max ? Math.max(3, item.count / max * 100) : 0;
+          return '<div class="bar-row"><div class="bar-label" title="' + esc(item.name) + '">' + esc(item.name) + '</div><div class="bar-track"><div class="bar-fill" style="width:' + width.toFixed(1) + '%"></div></div><div class="bar-count">' + formatInt(item.count) + '</div></div>';
+        }).join("") : '<div class="empty">No data available.</div>';
+      }
+
+      function groupModels(records) {
+        var map = new Map();
+        records.forEach(function (wrapper) {
+          var key = get(wrapper.record, "judge.model_key", "unknown");
+          if (!map.has(key)) map.set(key, []);
+          map.get(key).push(wrapper);
+        });
+        return map;
+      }
+
+      function renderOverview() {
+        var records = state.active;
+        var models = distinct(records.map(function (w) { return get(w.record, "judge.model_key", "unknown"); }));
+        var cases = distinct(records.map(function (w) { return get(w.record, "case.case_id", "unknown"); }));
+        var allLabels = records.flatMap(function (w) { return labels(w.record); });
+        var totalTokens = records.reduce(function (sum, w) { return sum + number(get(w.record, "response.usage.total_tokens", 0)); }, 0);
+        var totalCost = records.reduce(function (sum, w) { return sum + number(get(w.record, "cost.total_cost_usd", 0)); }, 0);
+        var errors = records.filter(function (w) { return get(w.record, "response.status", "") !== "ok"; }).length;
+
+        el("metrics").innerHTML =
+          metric("Active records", formatInt(records.length), state.superseded.length ? state.superseded.length + " retry/duplicate rows superseded" : "No superseded retries") +
+          metric("Models", formatInt(models.length), models.length > 1 ? "Ready for comparison" : "Add another model run") +
+          metric("Unique cases", formatInt(cases.length), "Across all imported runs") +
+          metric("KC labels", formatInt(allLabels.length), formatInt(records.reduce(function (sum, w) { return sum + tasks(w.record).length; }, 0)) + " tasks") +
+          metric("Tokens", formatInt(totalTokens), "Provider-reported total") +
+          metric("Cost", formatMoney(totalCost), errors + " non-ok result" + (errors === 1 ? "" : "s"));
+
+        var modelRows = [];
+        groupModels(records).forEach(function (group, key) {
+          var first = group[0].record;
+          var ok = group.filter(function (w) { return get(w.record, "response.status", "") === "ok"; }).length;
+          var avgLatency = group.reduce(function (sum, w) { return sum + number(get(w.record, "response.latency_ms", 0)); }, 0) / Math.max(group.length, 1);
+          var cost = group.reduce(function (sum, w) { return sum + number(get(w.record, "cost.total_cost_usd", 0)); }, 0);
+          var tokens = group.reduce(function (sum, w) { return sum + number(get(w.record, "response.usage.total_tokens", 0)); }, 0);
+          modelRows.push('<tr><td><div class="strong">' + esc(modelName(first)) + '</div><div class="muted mono">' + esc(key) + '</div></td><td>' + formatInt(group.length) + '</td><td>' + ((ok / Math.max(group.length, 1)) * 100).toFixed(1) + '%</td><td>' + formatMs(avgLatency) + '</td><td>' + formatInt(tokens) + '</td><td>' + formatMoney(cost) + '</td></tr>');
+        });
+        el("modelSummary").innerHTML = '<table><thead><tr><th>Model</th><th>Records</th><th>OK rate</th><th>Avg latency</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>' + modelRows.join("") + '</tbody></table>';
+        renderBars("statusBars", counts(records.map(function (w) { return get(w.record, "response.status", "unknown"); })), 10);
+        renderBars("labelBars", counts(allLabels.map(function (label) { return label.status || "unknown"; })), 12);
+        renderBars("flagBars", counts(records.flatMap(function (w) { return flags(w.record); })), 10);
+      }
+
+      function fillSelect(id, label, values) {
+        var node = el(id);
+        var previous = node.value;
+        node.innerHTML = '<option value="">All ' + esc(label) + '</option>' + values.map(function (value) {
+          return '<option value="' + esc(value) + '">' + esc(value) + '</option>';
+        }).join("");
+        if (values.indexOf(previous) >= 0) node.value = previous;
+      }
+
+      function refreshFilters() {
+        fillSelect("modelFilter", "models", distinct(state.active.map(function (w) { return get(w.record, "judge.model_key", "unknown"); })));
+        fillSelect("runFilter", "runs", distinct(state.active.map(function (w) { return get(w.record, "run_id", "unknown"); })));
+        fillSelect("assignmentFilter", "assignments", distinct(state.active.map(function (w) { return get(w.record, "case.assignment_id", "unknown"); })));
+        fillSelect("statusFilter", "response statuses", distinct(state.active.map(function (w) { return get(w.record, "response.status", "unknown"); })));
+        fillSelect("labelFilter", "label statuses", distinct(state.active.flatMap(function (w) { return labels(w.record).map(function (label) { return label.status || "unknown"; }); })));
+        fillSelect("testFilter", "tests", distinct(state.active.map(function (w) { return get(w.record, "experiment.test_id", "unknown"); })));
+        fillSelect("variantFilter", "variants", distinct(state.active.map(function (w) { return get(w.record, "experiment.variant_id", "unknown"); })));
+        fillSelect("flagFilter", "flags", distinct(state.active.flatMap(function (w) { return flags(w.record); })));
+      }
+
+      function filteredRecords() {
+        var query = el("searchInput").value.trim().toLowerCase();
+        var model = el("modelFilter").value;
+        var run = el("runFilter").value;
+        var assignment = el("assignmentFilter").value;
+        var responseStatus = el("statusFilter").value;
+        var labelStatus = el("labelFilter").value;
+        var test = el("testFilter").value;
+        var variant = el("variantFilter").value;
+        var flag = el("flagFilter").value;
+        var minimumConfidence = number(el("confidenceFilter").value);
+        return state.active.filter(function (wrapper) {
+          var record = wrapper.record;
+          if (model && get(record, "judge.model_key", "") !== model) return false;
+          if (run && get(record, "run_id", "") !== run) return false;
+          if (assignment && get(record, "case.assignment_id", "") !== assignment) return false;
+          if (responseStatus && get(record, "response.status", "") !== responseStatus) return false;
+          if (labelStatus && !labels(record).some(function (label) { return label.status === labelStatus; })) return false;
+          if (test && get(record, "experiment.test_id", "") !== test) return false;
+          if (variant && get(record, "experiment.variant_id", "") !== variant) return false;
+          if (flag && flags(record).indexOf(flag) < 0) return false;
+          if (minimumConfidence && !tasks(record).concat(labels(record)).some(function (item) { return number(item.confidence) >= minimumConfidence; })) return false;
+          if (query) {
+            var haystack = [
+              get(record, "case.case_id", ""),
+              get(record, "case.base_conversation_id", ""),
+              get(record, "case.student_id", ""),
+              get(record, "case.assignment_id", ""),
+              get(record, "run_id", ""),
+              get(record, "judge.model_key", ""),
+              modelName(record),
+              JSON.stringify(parsedOutput(record)),
+              JSON.stringify(get(record, "response.validation_errors", [])),
+              get(record, "response.api_error", "")
+            ].join(" ").toLowerCase();
+            if (haystack.indexOf(query) < 0) return false;
+          }
+          return true;
+        }).sort(function (a, b) {
+          return String(get(a.record, "case.case_id", "")).localeCompare(String(get(b.record, "case.case_id", ""))) ||
+            String(get(a.record, "judge.model_key", "")).localeCompare(String(get(b.record, "judge.model_key", "")));
+        });
+      }
+
+      function renderResults() {
+        var filtered = filteredRecords();
+        var pages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+        state.page = Math.min(state.page, pages);
+        var start = (state.page - 1) * state.pageSize;
+        var visible = filtered.slice(start, start + state.pageSize);
+        el("resultCount").textContent = filtered.length + " of " + state.active.length + " active results";
+        el("pageInfo").textContent = filtered.length ? "Showing " + (start + 1) + "–" + Math.min(start + state.pageSize, filtered.length) + " of " + filtered.length : "No matching results";
+        el("prevBtn").disabled = state.page <= 1;
+        el("nextBtn").disabled = state.page >= pages;
+
+        if (!visible.length) {
+          el("resultsTable").innerHTML = '<div class="empty">No records match the current filters.</div>';
+          return;
+        }
+        var rows = visible.map(function (wrapper) {
+          var record = wrapper.record;
+          return '<tr class="click-row" data-open="' + wrapper.uid + '">' +
+            '<td><div class="strong truncate" title="' + esc(get(record, "case.case_id", "")) + '">' + esc(get(record, "case.case_id", "Unknown")) + '</div><div class="muted">' + esc(get(record, "case.assignment_id", "—")) + '</div></td>' +
+            '<td><div class="strong nowrap">' + esc(modelName(record)) + '</div><div class="muted mono">' + esc(get(record, "run_id", "—")) + '</div></td>' +
+            '<td>' + statusPill(get(record, "response.status", "unknown")) + '</td>' +
+            '<td>' + formatInt(tasks(record).length) + '</td>' +
+            '<td>' + formatInt(labels(record).length) + '</td>' +
+            '<td><div class="truncate">' + (flags(record).length ? flags(record).map(function (flag) { return '<span class="pill">' + esc(flag) + '</span>'; }).join(" ") : '<span class="muted">—</span>') + '</div></td>' +
+            '<td class="nowrap">' + formatInt(get(record, "response.usage.total_tokens", 0)) + '</td>' +
+            '<td class="nowrap">' + formatMoney(get(record, "cost.total_cost_usd", 0)) + '</td>' +
+            '<td class="nowrap hide-mobile">' + formatMs(get(record, "response.latency_ms", 0)) + '</td>' +
+          '</tr>';
+        }).join("");
+        el("resultsTable").innerHTML = '<table><thead><tr><th>Case / assignment</th><th>Model / run</th><th>Status</th><th>Tasks</th><th>Labels</th><th>Flags</th><th>Tokens</th><th>Cost</th><th class="hide-mobile">Latency</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      }
+
+      function comparisonGroups() {
+        var map = new Map();
+        state.active.forEach(function (wrapper) {
+          var key = caseKey(wrapper.record);
+          if (!map.has(key)) map.set(key, []);
+          map.get(key).push(wrapper);
+        });
+        return Array.from(map.entries()).sort(function (a, b) { return a[0].localeCompare(b[0]); });
+      }
+
+      function jaccardSets(a, b) {
+        var union = new Set(Array.from(a).concat(Array.from(b)));
+        if (!union.size) return 1;
+        var intersection = Array.from(a).filter(function (item) { return b.has(item); }).length;
+        return intersection / union.size;
+      }
+
+      function agreementFor(group) {
+        if (group.length < 2) return null;
+        var scores = [];
+        for (var i = 0; i < group.length; i += 1) {
+          for (var j = i + 1; j < group.length; j += 1) {
+            var a = new Set(labels(group[i].record).map(function (label) { return (label.kc_id || "?") + ":" + (label.status || "?"); }));
+            var b = new Set(labels(group[j].record).map(function (label) { return (label.kc_id || "?") + ":" + (label.status || "?"); }));
+            scores.push(jaccardSets(a, b));
+          }
+        }
+        return scores.reduce(function (sum, value) { return sum + value; }, 0) / scores.length;
+      }
+
+      function renderComparison() {
+        var groups = comparisonGroups();
+        var select = el("caseSelect");
+        if (!state.selectedCase || !groups.some(function (entry) { return entry[0] === state.selectedCase; })) {
+          var multi = groups.find(function (entry) { return distinct(entry[1].map(function (w) { return get(w.record, "judge.model_key", "unknown"); })).length > 1; });
+          state.selectedCase = multi ? multi[0] : (groups[0] ? groups[0][0] : "");
+        }
+        select.innerHTML = groups.map(function (entry) {
+          var modelCount = distinct(entry[1].map(function (w) { return get(w.record, "judge.model_key", "unknown"); })).length;
+          return '<option value="' + esc(entry[0]) + '"' + (entry[0] === state.selectedCase ? " selected" : "") + '>' + esc(entry[0]) + " · " + modelCount + " model" + (modelCount === 1 ? "" : "s") + '</option>';
+        }).join("");
+
+        var selected = groups.find(function (entry) { return entry[0] === state.selectedCase; });
+        if (!selected) {
+          el("caseComparison").innerHTML = '<div class="empty">No cases available.</div>';
+        } else {
+          var score = agreementFor(selected[1]);
+          var panels = selected[1].sort(function (a, b) { return modelName(a.record).localeCompare(modelName(b.record)); }).map(function (wrapper) {
+            var record = wrapper.record;
+            var labelTags = labels(record).map(function (label) {
+              return '<span class="status ' + slugStatus(label.status) + '" title="' + esc(label.status || "") + '">' + esc(label.kc_id || "Unknown KC") + '</span>';
+            }).join("");
+            var taskTags = tasks(record).map(function (task) {
+              return '<span class="pill">' + esc(task.task_id || "Unknown task") + ' · ' + Math.round(number(task.confidence) * 100) + '%</span>';
+            }).join("");
+            return '<article class="model-panel">' +
+              '<div class="item-head"><div><h3>' + esc(modelName(record)) + '</h3><div class="meta">' + esc(get(record, "run_id", "—")) + ' · repeat ' + esc(get(record, "judge.repeat_index", 1)) + '</div></div>' + statusPill(get(record, "response.status", "unknown")) + '</div>' +
+              '<div class="mini-section"><div class="mini-title">Tasks (' + tasks(record).length + ')</div><div class="tag-cloud">' + (taskTags || '<span class="muted">None</span>') + '</div></div>' +
+              '<div class="mini-section"><div class="mini-title">KC labels (' + labels(record).length + ')</div><div class="tag-cloud">' + (labelTags || '<span class="muted">None</span>') + '</div></div>' +
+              '<div class="mini-section"><div class="mini-title">Flags</div><div class="tag-cloud">' + (flags(record).map(function (flag) { return '<span class="pill">' + esc(flag) + '</span>'; }).join("") || '<span class="muted">None</span>') + '</div></div>' +
+              '<div class="mini-section"><button class="btn" type="button" data-open="' + wrapper.uid + '">Read full result</button></div>' +
+            '</article>';
+          }).join("");
+          var signatureLists = selected[1].map(function (wrapper) {
+            return new Set(labels(wrapper.record).map(function (label) { return (label.kc_id || "?") + ":" + (label.status || "?"); }));
+          });
+          var shared = signatureLists.length ? Array.from(signatureLists[0]).filter(function (signature) {
+            return signatureLists.every(function (set) { return set.has(signature); });
+          }).sort() : [];
+          var allSignatures = new Set([].concat.apply([], signatureLists.map(function (set) { return Array.from(set); })));
+          var differing = Array.from(allSignatures).filter(function (signature) { return shared.indexOf(signature) < 0; }).sort();
+          var insight = selected[1].length < 2 ? "" : '<div class="card" style="margin-bottom:12px"><div class="card-head"><div><h3>Agreement detail</h3><p>Exact KC and status signatures across the selected outputs.</p></div></div><div class="card-body"><div class="mini-title">Shared by every output</div><div class="tag-cloud">' + (shared.map(function (item) { return '<span class="pill">' + esc(item) + '</span>'; }).join("") || '<span class="muted">None</span>') + '</div><div class="mini-section"><div class="mini-title">Present in only some outputs</div><div class="tag-cloud">' + (differing.map(function (item) { return '<span class="pill">' + esc(item) + '</span>'; }).join("") || '<span class="muted">None</span>') + '</div></div></div></div>';
+          var notice = selected[1].length < 2
+            ? '<div class="notice warn" style="margin-bottom:12px">Only one result is currently available for this case. Add result files from other models to compare them here.</div>'
+            : '<div class="notice" style="margin-bottom:12px">Exact KC/status agreement (pairwise Jaccard): <b>' + Math.round(score * 100) + '%</b>. Evidence wording is intentionally not included in this score.</div>';
+          el("caseComparison").innerHTML = notice + insight + '<div class="comparison-grid">' + panels + '</div>';
+        }
+
+        var modelKeys = distinct(state.active.map(function (w) { return get(w.record, "judge.model_key", "unknown"); }));
+        var matrixRows = groups.map(function (entry) {
+          var byModel = new Map();
+          entry[1].forEach(function (wrapper) {
+            var key = get(wrapper.record, "judge.model_key", "unknown");
+            if (!byModel.has(key)) byModel.set(key, []);
+            byModel.get(key).push(wrapper);
+          });
+          var cells = modelKeys.map(function (key) {
+            var candidates = byModel.get(key) || [];
+            if (!candidates.length) return '<td><span class="muted">—</span></td>';
+            var wrapper = candidates[candidates.length - 1];
+            var record = wrapper.record;
+            var extra = candidates.length > 1 ? ' +' + (candidates.length - 1) + " run" + (candidates.length === 2 ? "" : "s") : "";
+            return '<td class="click-row" data-open="' + wrapper.uid + '">' + statusPill(get(record, "response.status", "unknown")) + '<div class="muted" style="margin-top:5px">' + tasks(record).length + ' tasks · ' + labels(record).length + ' labels' + esc(extra) + '</div></td>';
+          }).join("");
+          var agreement = agreementFor(entry[1]);
+          return '<tr><td><div class="strong truncate" title="' + esc(entry[0]) + '">' + esc(entry[0]) + '</div></td>' + cells + '<td>' + (agreement === null ? "—" : Math.round(agreement * 100) + "%") + '</td></tr>';
+        }).join("");
+        el("coverageMatrix").innerHTML = groups.length
+          ? '<table><thead><tr><th>Case / repeat</th>' + modelKeys.map(function (key) { return "<th>" + esc(key) + "</th>"; }).join("") + '<th>Agreement</th></tr></thead><tbody>' + matrixRows + '</tbody></table>'
+          : '<div class="empty">No comparison data available.</div>';
+      }
+
+      function renderQuality() {
+        var badResults = state.active.filter(function (w) { return get(w.record, "response.status", "") !== "ok"; });
+        var incompleteCosts = state.active.filter(function (w) { return get(w.record, "cost.cost_complete", true) === false; });
+        var issueCount = state.log.filter(function (item) { return item.level === "error" || item.level === "warning"; }).length;
+        var summary = [];
+        if (!issueCount && !badResults.length && !state.superseded.length && !incompleteCosts.length) {
+          summary.push('<div class="notice">No data-quality concerns were detected.</div>');
+        } else {
+          if (badResults.length) summary.push('<div class="notice bad"><b>' + badResults.length + '</b> active record(s) have a non-ok response status.</div>');
+          if (issueCount) summary.push('<div class="notice warn"><b>' + issueCount + '</b> file or schema warning(s) were detected during import.</div>');
+          if (state.superseded.length) summary.push('<div class="notice"><b>' + state.superseded.length + '</b> older retry or repeated import row(s) were superseded. They are excluded from analytics and exports.</div>');
+          if (incompleteCosts.length) summary.push('<div class="notice warn"><b>' + incompleteCosts.length + '</b> active record(s) have incomplete cost information.</div>');
+        }
+        el("qualitySummary").innerHTML = summary.join('<div style="height:8px"></div>');
+
+        var entries = state.log.slice();
+        badResults.forEach(function (wrapper) {
+          entries.push({
+            level: "result",
+            file: wrapper.file,
+            line: wrapper.line,
+            message: get(wrapper.record, "response.status", "unknown") + ": " +
+              (get(wrapper.record, "response.parse_error", "") || arr(get(wrapper.record, "response.validation_errors", [])).join("; ") || get(wrapper.record, "response.api_error", "") || get(wrapper.record, "case.case_id", "Result needs review"))
+          });
+        });
+        el("qualityLog").innerHTML = entries.length ? entries.map(function (item) {
+          return '<div class="log-item"><div class="item-head"><span class="status ' + (item.level === "error" ? "api_error" : item.level === "warning" ? "insufficient_evidence" : "neutral_mention") + '">' + esc(item.level) + '</span><span class="muted mono">' + esc(item.file || "") + (item.line ? ":" + item.line : "") + '</span></div><div>' + esc(item.message) + '</div></div>';
+        }).join("") : '<div class="empty">No import messages.</div>';
+        var badgeCount = issueCount + badResults.length;
+        el("qualityCount").textContent = badgeCount ? "(" + badgeCount + ")" : "";
+      }
+
+      function renderAll() {
+        renderFiles();
+        rebuildActive();
+        el("workspace").classList.toggle("ready", state.imported.length > 0 || state.log.length > 0);
+        el("resetBtn").disabled = state.imported.length === 0 && state.log.length === 0;
+        refreshFilters();
+        renderOverview();
+        renderResults();
+        renderComparison();
+        renderQuality();
+      }
+
+      function confidence(value) {
+        return Number.isFinite(Number(value)) ? Math.round(Number(value) * 100) + "%" : "—";
+      }
+
+      function definitionList(items) {
+        return '<dl class="kv">' + items.map(function (item) {
+          return '<dt>' + esc(item[0]) + '</dt><dd>' + (item[2] ? item[1] : esc(item[1])) + '</dd>';
+        }).join("") + '</dl>';
+      }
+
+      function evidenceHtml(evidence) {
+        return arr(evidence).map(function (quote) { return '<div class="evidence">' + esc(quote) + '</div>'; }).join("");
+      }
+
+      function openDrawer(uid) {
+        var wrapper = state.imported.find(function (item) { return item.uid === Number(uid); });
+        if (!wrapper) return;
+        var record = wrapper.record;
+        el("drawerTitle").textContent = get(record, "case.case_id", "Unknown case");
+        el("drawerSub").textContent = modelName(record) + " · " + get(record, "run_id", "Unknown run") + " · " + wrapper.file + ":" + wrapper.line;
+
+        var flagHtml = flags(record).map(function (flag) { return '<span class="pill">' + esc(flag) + '</span>'; }).join("");
+        var taskHtml = tasks(record).map(function (task) {
+          return '<div class="task"><div class="item-head"><span class="strong mono">' + esc(task.task_id || "Unknown task") + '</span><span class="pill">' + confidence(task.confidence) + ' confidence</span></div>' + evidenceHtml(task.evidence) + '</div>';
+        }).join("");
+        var labelHtml = labels(record).map(function (label) {
+          return '<div class="label-card"><div class="item-head"><span class="strong mono">' + esc(label.kc_id || "Unknown KC") + '</span>' + statusPill(label.status || "unknown") + '</div>' +
+            '<div class="tag-cloud">' + arr(label.linked_task_ids).map(function (taskId) { return '<span class="pill">' + esc(taskId) + '</span>'; }).join("") + '<span class="pill">' + confidence(label.confidence) + ' confidence</span></div>' +
+            evidenceHtml(label.evidence) + (label.note ? '<div class="note"><b>Note:</b> ' + esc(label.note) + '</div>' : "") + '</div>';
+        }).join("");
+        var validation = arr(get(record, "response.validation_errors", []));
+        var errorParts = [
+          get(record, "response.parse_error", ""),
+          get(record, "response.api_error", ""),
+          validation.length ? validation.join("\n") : ""
+        ].filter(Boolean);
+
+        el("drawerContent").innerHTML =
+          '<section class="detail-section"><div class="detail-title">Summary</div><div class="detail-body">' +
+            definitionList([
+              ["Response", statusPill(get(record, "response.status", "unknown")), true],
+              ["Model", modelName(record) + " (" + get(record, "judge.model_key", "—") + ")"],
+              ["Provider", get(record, "judge.provider", "—") + " · " + get(record, "judge.model_id", "—")],
+              ["Reasoning / repeat", get(record, "judge.reasoning_effort", "—") + " · " + get(record, "judge.repeat_index", 1)],
+              ["Experiment", get(record, "experiment.test_id", "—") + " / " + get(record, "experiment.variant_id", "—")],
+              ["Assignment / student", get(record, "case.assignment_id", "—") + " / " + get(record, "case.student_id", "—")],
+              ["Collected", get(record, "collected_at_utc", "—")],
+              ["Execution key", get(record, "execution_key", "—")]
+            ]) +
+            '<div class="mini-section"><div class="mini-title">Flags</div><div class="tag-cloud">' + (flagHtml || '<span class="muted">None</span>') + '</div></div>' +
+          '</div></section>' +
+          (errorParts.length ? '<section class="detail-section"><div class="detail-title">Errors</div><div class="detail-body"><div class="notice bad">' + esc(errorParts.join("\n")) + '</div></div></section>' : "") +
+          '<section class="detail-section"><div class="detail-title">Tasks (' + tasks(record).length + ')</div><div class="detail-body">' + (taskHtml || '<span class="muted">No tasks.</span>') + '</div></section>' +
+          '<section class="detail-section"><div class="detail-title">Knowledge-component labels (' + labels(record).length + ')</div><div class="detail-body">' + (labelHtml || '<span class="muted">No labels.</span>') + '</div></section>' +
+          '<section class="detail-section"><div class="detail-title">Usage, latency, and cost</div><div class="detail-body">' +
+            definitionList([
+              ["Input tokens", formatInt(get(record, "response.usage.input_tokens", 0))],
+              ["Output tokens", formatInt(get(record, "response.usage.output_tokens", 0))],
+              ["Reasoning tokens", formatInt(get(record, "response.usage.output_tokens_details.reasoning_tokens", 0))],
+              ["Total tokens", formatInt(get(record, "response.usage.total_tokens", 0))],
+              ["Latency", formatMs(get(record, "response.latency_ms", 0))],
+              ["Total cost", formatMoney(get(record, "cost.total_cost_usd", 0))],
+              ["Cost complete", String(get(record, "cost.cost_complete", false))],
+              ["Collection / API attempts", get(record, "response.collection_attempt", 1) + " / " + get(record, "response.api_attempts", 1)]
+            ]) +
+          '</div></section>' +
+          '<section class="detail-section"><div class="detail-title">Provenance</div><div class="detail-body">' +
+            definitionList([
+              ["Prompt version", get(record, "input_provenance.prompt_version", "—")],
+              ["Prompt variant", get(record, "experiment.prompt_variant_id", "—")],
+              ["Prompt source", get(record, "input_provenance.prompt_source_file", "—")],
+              ["Prompt hash", get(record, "input_provenance.rendered_system_prompt_hash", "—")],
+              ["Conversation hash", get(record, "input_provenance.conversation_hash", "—")],
+              ["Case hash", get(record, "case.case_hash", "—")],
+              ["Output schema hash", get(record, "input_provenance.output_schema_hash", "—")]
+            ]) +
+          '</div></section>' +
+          '<section class="detail-section"><div class="detail-body"><details><summary>Raw parsed judge output</summary><pre>' + esc(JSON.stringify(parsedOutput(record), null, 2)) + '</pre></details></div></section>' +
+          '<section class="detail-section"><div class="detail-body"><details><summary>Complete raw record</summary><pre>' + esc(JSON.stringify(record, null, 2)) + '</pre></details></div></section>';
+
+        el("drawerBackdrop").classList.add("open");
+        el("drawer").classList.add("open");
+        el("drawer").setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeDrawer() {
+        el("drawerBackdrop").classList.remove("open");
+        el("drawer").classList.remove("open");
+        el("drawer").setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+      }
+
+      function cleanRecord(record) {
+        return JSON.parse(JSON.stringify(record));
+      }
+
+      function download(name, mime, content) {
+        var blob = new Blob([content], { type: mime });
+        var url = URL.createObjectURL(blob);
+        var anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = name;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      }
+
+      function csvCell(value) {
+        var text = typeof value === "string" ? value : JSON.stringify(value === undefined ? "" : value);
+        return '"' + String(text).replace(/"/g, '""') + '"';
+      }
+
+      function exportCsv() {
+        var records = filteredRecords().map(function (w) { return w.record; });
+        var headers = ["execution_key", "run_id", "case_id", "assignment_id", "student_id", "test_id", "variant_id", "model_key", "model_display_name", "repeat_index", "status", "task_count", "label_count", "flags", "total_tokens", "latency_ms", "total_cost_usd", "tasks_json", "labels_json"];
+        var rows = records.map(function (record) {
+          return [
+            get(record, "execution_key", ""), get(record, "run_id", ""), get(record, "case.case_id", ""),
+            get(record, "case.assignment_id", ""), get(record, "case.student_id", ""), get(record, "experiment.test_id", ""),
+            get(record, "experiment.variant_id", ""), get(record, "judge.model_key", ""), modelName(record),
+            get(record, "judge.repeat_index", 1), get(record, "response.status", ""), tasks(record).length,
+            labels(record).length, flags(record), get(record, "response.usage.total_tokens", 0),
+            get(record, "response.latency_ms", 0), get(record, "cost.total_cost_usd", 0), tasks(record), labels(record)
+          ].map(csvCell).join(",");
+        });
+        download("judge_results_filtered.csv", "text/csv;charset=utf-8", "\uFEFF" + headers.map(csvCell).join(",") + "\n" + rows.join("\n"));
+        toast(records.length + " filtered records exported");
+      }
+
+      function exportJsonl() {
+        var content = state.active.map(function (wrapper) { return JSON.stringify(cleanRecord(wrapper.record)); }).join("\n") + "\n";
+        download("judge_results_combined.jsonl", "application/x-ndjson;charset=utf-8", content);
+        toast(state.active.length + " active records exported");
+      }
+
+      function clearFilters() {
+        el("searchInput").value = "";
+        ["modelFilter", "runFilter", "assignmentFilter", "statusFilter", "labelFilter", "testFilter", "variantFilter", "flagFilter", "confidenceFilter"].forEach(function (id) { el(id).value = ""; });
+        state.page = 1;
+        renderResults();
+      }
+
+      el("chooseBtn").addEventListener("click", function () { el("fileInput").click(); });
+      el("addBtn").addEventListener("click", function () { el("fileInput").click(); });
+      el("fileInput").addEventListener("change", function (event) { importFiles(event.target.files); });
+      ["dragenter", "dragover"].forEach(function (name) {
+        el("dropZone").addEventListener(name, function (event) { event.preventDefault(); el("dropZone").classList.add("dragging"); });
+      });
+      ["dragleave", "drop"].forEach(function (name) {
+        el("dropZone").addEventListener(name, function (event) { event.preventDefault(); el("dropZone").classList.remove("dragging"); });
+      });
+      el("dropZone").addEventListener("drop", function (event) { importFiles(event.dataTransfer.files); });
+      el("themeBtn").addEventListener("click", function () {
+        setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+      });
+      el("resetBtn").addEventListener("click", function () {
+        state.imported = []; state.active = []; state.files = []; state.log = []; state.superseded = []; state.page = 1; state.selectedCase = "";
+        el("searchInput").value = "";
+        closeDrawer();
+        renderAll();
+        toast("Viewer reset");
+      });
+      document.querySelectorAll(".tab").forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          document.querySelectorAll(".tab").forEach(function (item) { item.classList.toggle("active", item === tab); });
+          document.querySelectorAll(".panel").forEach(function (panel) { panel.classList.toggle("active", panel.id === "panel-" + tab.dataset.tab); });
+        });
+      });
+      ["searchInput", "modelFilter", "runFilter", "assignmentFilter", "statusFilter", "labelFilter", "testFilter", "variantFilter", "flagFilter", "confidenceFilter"].forEach(function (id) {
+        el(id).addEventListener(id === "searchInput" ? "input" : "change", function () { state.page = 1; renderResults(); });
+      });
+      el("clearFiltersBtn").addEventListener("click", clearFilters);
+      el("prevBtn").addEventListener("click", function () { state.page -= 1; renderResults(); });
+      el("nextBtn").addEventListener("click", function () { state.page += 1; renderResults(); });
+      el("caseSelect").addEventListener("change", function (event) { state.selectedCase = event.target.value; renderComparison(); });
+      el("exportCsvBtn").addEventListener("click", exportCsv);
+      el("exportJsonlBtn").addEventListener("click", exportJsonl);
+      el("closeDrawerBtn").addEventListener("click", closeDrawer);
+      el("drawerBackdrop").addEventListener("click", closeDrawer);
+      document.addEventListener("keydown", function (event) { if (event.key === "Escape") closeDrawer(); });
+      document.addEventListener("click", function (event) {
+        var target = event.target.closest("[data-open]");
+        if (target) openDrawer(target.dataset.open);
+      });
+
+      try {
+        setTheme(localStorage.getItem("judge-viewer-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+      } catch (error) {
+        setTheme("light");
+      }
+      renderAll();
+    }());
+  </script>
+</body>
+</html>

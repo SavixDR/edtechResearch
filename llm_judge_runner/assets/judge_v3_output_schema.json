@@ -4,9 +4,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "conversation_id": {"type": "string", "minLength": 1},
-    "chunk_id": {"type": "string", "minLength": 1},
-    "assignment_id": {"type": "string", "minLength": 1},
     "tasks": {
       "type": "array",
       "items": {
@@ -78,5 +75,5 @@
       }
     }
   },
-  "required": ["conversation_id", "chunk_id", "assignment_id", "tasks", "labels", "flags"]
+  "required": ["tasks", "labels", "flags"]
 }

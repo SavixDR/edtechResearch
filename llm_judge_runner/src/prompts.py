@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -60,29 +61,41 @@ def render_user_prompt(
 ) -> dict[str, Any]:
     path: Path = prompt_variant["resolved_user_file"]
     template = path.read_text(encoding="utf-8")
-    required = {"{{CONVERSATION}}", "{{OUTPUT_SCHEMA}}"}
+    required = {"{{DYNAMIC_CASE_INPUT}}", "{{OUTPUT_SCHEMA}}"}
     missing = sorted(token for token in required if token not in template)
     if missing:
         raise RuntimeError(f"User prompt file {path} is missing required placeholders: {missing}")
 
-    replacements = {
-        "{{ASSIGNMENT_ID}}": str(case["assignment_id"]),
-        "{{CONVERSATION_ID}}": str(case["conversation_id"]),
-        "{{CHUNK_ID}}": str(case["chunk_id"]),
-        "{{BASE_CONVERSATION_ID}}": str(case["base_conversation_id"]),
-        "{{CASE_ID}}": str(case["case_id"]),
-        "{{TEST_ID}}": str(case["test_id"]),
-        "{{VARIANT_ID}}": str(case["variant_id"]),
-        "{{CONVERSATION}}": conversation_text,
-        "{{OUTPUT_SCHEMA}}": output_schema_text,
-    }
-    rendered = template
-    for token, value in replacements.items():
-        rendered = rendered.replace(token, value)
+    stable_template, dynamic_template = template.split("{{DYNAMIC_CASE_INPUT}}", 1)
+    stable_prefix = stable_template.replace("{{OUTPUT_SCHEMA}}", output_schema_text).rstrip()
+    dynamic_case_input = "\n".join(
+        [
+            "Metadata:",
+            f'assignment_id: {case["assignment_id"]}',
+            f'conversation_id: {case["conversation_id"]}',
+            f'chunk_id: {case["chunk_id"]}',
+            f'base_conversation_id: {case["base_conversation_id"]}',
+            f'case_id: {case["case_id"]}',
+            f'test_id: {case["test_id"]}',
+            f'variant_id: {case["variant_id"]}',
+            "",
+            "<conversation>",
+            conversation_text,
+            "</conversation>",
+        ]
+    )
+    dynamic_suffix = dynamic_case_input + dynamic_template
+    rendered = f"{stable_prefix}\n\n{dynamic_suffix}"
+    if re.search(r"\{\{[A-Z0-9_]+\}\}", rendered):
+        raise RuntimeError(f"User prompt file {path} contains an unresolved placeholder")
     return {
         "text": rendered,
+        "stable_prefix_text": stable_prefix,
+        "dynamic_suffix_text": dynamic_suffix,
         "template_text": template,
         "template_hash": sha256_text(template),
         "rendered_hash": sha256_text(rendered),
+        "stable_prefix_hash": sha256_text(stable_prefix),
+        "dynamic_suffix_hash": sha256_text(dynamic_suffix),
         "source_file": str(path),
     }

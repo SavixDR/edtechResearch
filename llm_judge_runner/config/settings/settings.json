@@ -6,6 +6,7 @@
   "models_file": "config/models.json",
   "prompt_variants_file": "config/prompt_variants.json",
   "assignments_file": "config/assignments.json",
+  "pricing_file": "config/pricing.json",
   "results_root": "outputs",
   "max_output_tokens": 8000,
   "default_repeats": 1,

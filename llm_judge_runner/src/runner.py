@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 from .cases import load_cases, render_conversation
 from .codebook import load_codebook
 from .config import ModelConfig, Settings, load_models
+from .cost_estimation import calculate_live_cost, write_live_cost_reports
 from .prompts import load_prompt_variants, render_system_prompt, render_user_prompt
 from .providers.registry import get_provider
 from .result_writer import append_result, rebuild_flat_csv
@@ -34,6 +35,33 @@ def execution_key(model_key: str, case_id: str, repeat_index: int) -> str:
 
 def safe_filename(value: str) -> str:
     return re.sub(r'[<>:"/\\|?*]+', "_", value)
+
+
+def format_completion_outcome(
+    *,
+    status: str,
+    api_error: str | None,
+    parse_error: str | None,
+    validation_errors: list[str],
+    finish_reason: str | None,
+    usage: dict[str, Any],
+    max_output_tokens: int,
+) -> str:
+    """Return a concise terminal explanation for a completed request."""
+    if api_error:
+        reason = f"API failure: {api_error}"
+    elif parse_error:
+        reason = f"output parsing failed: {parse_error}"
+    elif validation_errors:
+        reason = f"validation failed ({len(validation_errors)} error(s)): {validation_errors[0]}"
+    elif finish_reason == "length":
+        output_tokens = usage.get("output_tokens") or usage.get("completion_tokens")
+        reason = f"completed with output limit/truncation (finish_reason=length, output_tokens={output_tokens or 'unknown'}, max_output_tokens={max_output_tokens})"
+    elif finish_reason:
+        reason = f"completed (finish_reason={finish_reason})"
+    else:
+        reason = "completed"
+    return f"{status}: {reason}"
 
 
 def _resolve_codebook(project_root: Path, assignments: dict[str, Any], assignment_id: str) -> dict[str, Any]:
@@ -63,9 +91,12 @@ def _resolve_codebook(project_root: Path, assignments: dict[str, Any], assignmen
     return codebook
 
 
-def _prepare_run_dir(settings: Settings, requested_run_id: str | None = None) -> tuple[str, Path]:
+def _prepare_run_dir(
+    settings: Settings, dry_run: bool, requested_run_id: str | None = None
+) -> tuple[str, Path]:
     run_id = requested_run_id or datetime.now().strftime("run_%Y%m%d_%H%M%S")
-    run_dir = settings.results_root / run_id
+    category = "dryruns" if dry_run else "live_runs"
+    run_dir = settings.results_root / category / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_id, run_dir
 
@@ -116,6 +147,8 @@ def run_collection(
     cases = load_cases(settings.cases_file)
     output_schema = load_json(settings.output_schema_file) if settings.output_schema_file else None
     output_schema_text = json.dumps(output_schema, indent=2, ensure_ascii=False) if output_schema else None
+    pricing_config = load_json(settings.pricing_file)
+    pricing_hash = sha256_json(pricing_config)
 
     if selected_model_keys:
         missing = sorted(set(selected_model_keys) - set(models))
@@ -135,12 +168,17 @@ def run_collection(
         raise RuntimeError("No cases selected")
     if not chosen_models:
         raise RuntimeError("No models selected")
+    missing_pricing = sorted(
+        model.key for model in chosen_models if model.key not in pricing_config.get("models", {})
+    )
+    if missing_pricing:
+        raise KeyError(f"No pricing entries for selected models: {missing_pricing}")
 
     repeats = repeats if repeats is not None else settings.default_repeats
     if repeats < 1:
         raise ValueError("repeats must be >= 1")
 
-    run_id, run_dir = _prepare_run_dir(settings, run_id)
+    run_id, run_dir = _prepare_run_dir(settings, dry_run, run_id)
     results_jsonl = run_dir / "results.jsonl"
     results_csv = run_dir / "results_flat.csv"
     errors_jsonl = run_dir / "errors.jsonl"
@@ -186,6 +224,15 @@ def run_collection(
         "parse_mode": settings.parse_mode,
         "output_schema_file": str(settings.output_schema_file) if settings.output_schema_file else None,
         "output_schema_hash": sha256_json(output_schema) if output_schema else None,
+        "pricing": {
+            "source_file": str(settings.pricing_file),
+            "hash": pricing_hash,
+            "currency": pricing_config.get("currency", "USD"),
+            "prices_as_of": pricing_config.get("prices_as_of"),
+            "selected_model_rates": {
+                model.key: pricing_config["models"][model.key] for model in chosen_models
+            },
+        },
         "models": [m.__dict__ for m in chosen_models],
         "selected_tests": sorted({c["test_id"] for c in cases}),
         "selected_case_count": len(cases),
@@ -229,7 +276,7 @@ def run_collection(
         key: manifest[key] for key in (
             "experiment_name", "suite_version", "prompt_version", "parse_mode", "output_schema_hash",
             "models", "selected_tests", "selected_case_count", "repeats", "planned_requests", "dry_run",
-            "prompt_snapshots", "rendered_user_prompts", "codebooks",
+            "prompt_snapshots", "rendered_user_prompts", "codebooks", "pricing",
         )
     }
     resume_basis["cases"] = [
@@ -277,6 +324,10 @@ def run_collection(
 
     if resume:
         rebuild_flat_csv(results_jsonl, results_csv)
+        existing_records = read_jsonl(results_jsonl) if results_jsonl.exists() else []
+    else:
+        existing_records = []
+    write_live_cost_reports(run_dir, existing_records, pricing_config, pricing_hash)
     done = _existing_execution_keys(results_jsonl, retry_api_errors=retry_api_errors) if resume else set()
     collection_attempt_counts = _execution_attempt_counts(results_jsonl) if resume else {}
     total = len(cases) * len(chosen_models) * repeats
@@ -370,6 +421,8 @@ def run_collection(
                         "base_conversation_id": case["base_conversation_id"],
                         "conversation_id": case["conversation_id"],
                         "chunk_id": case["chunk_id"],
+                        "chunk_index": case.get("chunk_index"),
+                        "chunk_count": case.get("chunk_count"),
                         "assignment_id": case["assignment_id"],
                         "student_id": case.get("student_id"),
                         "case_hash": case["case_hash"],
@@ -417,10 +470,31 @@ def run_collection(
                         "api_error": api_error,
                     },
                 }
+                record["cost"] = calculate_live_cost(
+                    adapter=model.adapter,
+                    usage=provider_result.usage if provider_result else {},
+                    pricing=pricing_config["models"][model.key],
+                    api_attempts=attempts,
+                    provider_response_received=provider_result is not None,
+                )
                 append_result(results_jsonl, results_csv, record)
+                existing_records.append(record)
+                write_live_cost_reports(run_dir, existing_records, pricing_config, pricing_hash)
                 collection_attempt_counts[ek] = collection_attempt_counts.get(ek, 0) + 1
                 if status != "ok":
                     from .utils import append_jsonl
                     append_jsonl(errors_jsonl, record)
+                print(
+                    f"[{current}/{total}] DONE {model.key} | {case['case_id']} | repeat={repeat_index} | "
+                    f"{format_completion_outcome(
+                        status=status,
+                        api_error=api_error,
+                        parse_error=parse_error,
+                        validation_errors=schema_errors,
+                        finish_reason=provider_result.finish_reason if provider_result else None,
+                        usage=provider_result.usage if provider_result else {},
+                        max_output_tokens=settings.max_output_tokens,
+                    )} | latency_ms={latency_ms}"
+                )
 
     return run_dir

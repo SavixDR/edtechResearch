@@ -28,11 +28,21 @@ class GeminiGenerateContentProvider:
         api_key = os.getenv(model.api_key_env)
         if not api_key:
             raise RuntimeError(f"Missing environment variable {model.api_key_env}")
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(
+                    timeout=timeout_seconds * 1000),
+                )
         config_kwargs: dict[str, Any] = {
             "system_instruction": system_prompt,
             "max_output_tokens": max_output_tokens,
         }
+        
+        if model.reasoning_effort:
+            config_kwargs["thinking_config"] = types.ThinkingConfig(
+                thinking_level=model.reasoning_effort
+            )
+            
         if model.temperature is not None:
             config_kwargs["temperature"] = model.temperature
         response = client.models.generate_content(

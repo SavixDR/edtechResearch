@@ -21,6 +21,8 @@ class ModelConfig:
     reasoning_effort: str | None = None
     temperature: float | None = None
     requested_version_label: str | None = None
+    stream: bool = False
+    sdk_max_retries: int | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
 
@@ -33,6 +35,7 @@ class Settings:
     models_file: Path
     prompt_variants_file: Path
     assignments_file: Path
+    pricing_file: Path
     results_root: Path
     max_output_tokens: int
     default_repeats: int
@@ -50,6 +53,9 @@ def load_settings(project_root: Path, settings_path: Path) -> Settings:
     parse_mode = raw.get("parse_mode", "strict")
     if parse_mode not in {"strict", "tolerant"}:
         raise ValueError("parse_mode must be 'strict' or 'tolerant'")
+    pricing_file = project_path(project_root, raw.get("pricing_file", "config/pricing.json"))
+    if pricing_file is None:
+        raise ValueError("pricing_file is required")
     return Settings(
         experiment_name=raw["experiment_name"],
         suite_version=str(raw["suite_version"]),
@@ -58,6 +64,7 @@ def load_settings(project_root: Path, settings_path: Path) -> Settings:
         models_file=project_path(project_root, raw["models_file"]),
         prompt_variants_file=project_path(project_root, raw["prompt_variants_file"]),
         assignments_file=project_path(project_root, raw["assignments_file"]),
+        pricing_file=pricing_file,
         results_root=project_path(project_root, raw["results_root"]),
         max_output_tokens=int(raw.get("max_output_tokens", 8000)),
         default_repeats=int(raw.get("default_repeats", 1)),
@@ -88,6 +95,12 @@ def load_models(path: Path) -> dict[str, ModelConfig]:
             reasoning_effort=item.get("reasoning_effort"),
             temperature=item.get("temperature"),
             requested_version_label=item.get("requested_version_label"),
+            stream=bool(item.get("stream", False)),
+            sdk_max_retries=(
+                int(item["sdk_max_retries"])
+                if item.get("sdk_max_retries") is not None
+                else None
+            ),
             extra=item.get("extra", {}),
         )
     return out

@@ -1,0 +1,75 @@
+{
+  "currency": "USD",
+  "prices_as_of": "2026-09-02",
+  "notes": "USD per 1 million tokens. Conservative standard/peak/upper-tier rates are used where pricing varies by prompt length, time, or region. Taxes, tool calls, negotiated discounts, batch discounts, and cache storage charges are excluded.",
+  "models": {
+    "claude_opus_5": {
+      "input_per_million": 5.0,
+      "cached_input_per_million": 0.5,
+      "cache_write_per_million": 6.25,
+      "output_per_million": 25.0,
+      "pricing_basis": "Claude API global pricing with a 5-minute cache write. A 1-hour cache write costs $10 per million tokens and is not represented by this flat entry.",
+      "source_url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "token_counter": {"reference_model": "gpt-5.6-sol", "conservative_multiplier": 1.4}
+    },
+    "gpt_5_6_sol": {
+      "input_per_million": 4.0,
+      "cached_input_per_million": 0.4,
+      "cache_write_per_million": 5.0,
+      "output_per_million": 20.0,
+      "pricing_basis": "Promotional GPT-5.6 Sol pricing available at least through 2026-11-21. Prompts above 272K input tokens have additional multipliers not represented by this flat entry.",
+      "source_url": "https://developers.openai.com/api/docs/models/gpt-5.6-sol",
+      "token_counter": {"reference_model": "gpt-5.6-sol", "conservative_multiplier": 1.0}
+    },
+    "gemini_3_1_pro": {
+      "input_per_million": 4.0,
+      "cached_input_per_million": 0.4,
+      "cache_write_per_million": null,
+      "output_per_million": 18.0,
+      "pricing_basis": "Conservative Gemini 3.1 Pro Preview Standard tier for prompts above 200K tokens. The <=200K tier is $2 input, $0.20 cached input, and $12 output. Cache storage is excluded.",
+      "source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "token_counter": {"reference_model": "gpt-5.6-sol", "conservative_multiplier": 1.4}
+    },
+    "glm_5_3": {
+      "input_per_million": 1.4,
+      "cached_input_per_million": 0.26,
+      "cache_write_per_million": null,
+      "output_per_million": 4.4,
+      "pricing_basis": "Z.AI standard GLM-5.3 pricing. Cached-input storage is listed as temporarily free and is excluded from the estimator.",
+      "source_url": "https://docs.z.ai/guides/overview/pricing",
+      "token_counter": {"reference_model": "gpt-5.6-sol", "conservative_multiplier": 1.4}
+    },
+    "kimi_k3": {
+      "input_per_million": 3.0,
+      "cached_input_per_million": 0.3,
+      "cache_write_per_million": null,
+      "output_per_million": 15.0,
+      "pricing_basis": "Official Kimi API pay-as-you-go pricing with automatic context-cache hit pricing.",
+      "source_url": "https://platform.kimi.ai/",
+      "token_counter": {"reference_model": "gpt-5.6-sol", "conservative_multiplier": 1.4}
+    },
+    "deepseek_v4_pro_0813": {
+      "input_per_million": 1.32,
+      "cached_input_per_million": 0.044,
+      "cache_write_per_million": null,
+      "output_per_million": 3.96,
+      "pricing_basis": "Conservative DeepSeek-V4-Pro peak-time rates. Official off-peak input, cached input, and output rates are half these values.",
+      "source_url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "token_counter": {"reference_model": "gpt-5.6-sol", "conservative_multiplier": 1.4}
+    },
+    "qwen_3_8_max_0902": {
+      "input_per_million": 2.0,
+      "cached_input_per_million": 0.25,
+      "cache_write_per_million": null,
+      "output_per_million": 6.0,
+      "pricing_basis": "QwenCloud pay-as-you-go rates using automatic implicit caching; explicit caching is not enabled.",
+      "source_url": "https://www.qwencloud.com/models/qwen3.8-max",
+      "token_counter": {"reference_model": "gpt-5.6-sol", "conservative_multiplier": 1.4}
+    }
+  },
+  "cache_projection": {
+    "assumed_hit_rates": [0.0, 0.5, 0.9, 1.0],
+    "first_request_populates_cache": true,
+    "cache_storage_cost_included": false
+  }
+}

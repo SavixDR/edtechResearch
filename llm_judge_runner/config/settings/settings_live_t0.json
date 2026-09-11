@@ -1,0 +1,28 @@
+{
+	"experiment_name": "llm_as_judge_t0_live",
+	"suite_version": "1.0",
+	"prompt_version": "V3",
+	"cases_file": "data/balanced_conversations_24.jsonl",
+	"models_file": "config/models.json",
+	"prompt_variants_file": "config/prompt_variants.json",
+	"assignments_file": "config/assignments.json",
+	"pricing_file": "config/pricing.json",
+	"results_root": "outputs/pilots",
+	"max_output_tokens": 131072,
+	"default_repeats": 1,
+	"parse_mode": "tolerant",
+	"output_schema_file": "assets/judge_v3_output_schema.json",
+	"request_timeout_seconds": 700,
+	"max_api_attempts": 1,
+	"retry_backoff_seconds": 0,
+	"save_case_snapshot": true,
+	"save_prompt_snapshots": true,
+	"pilot": {
+		"generation_enabled": false,
+		"pricing_file": "config/pricing.json",
+		"required_test_id": "T0",
+		"default_mode": "both",
+		"offline_chars_per_token": 4.0,
+		"openai_counter_api_key_env": "OPENAI_API_KEY"
+	}
+}

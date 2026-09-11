@@ -2,3 +2,5 @@
 /data
 
 *.env
+
+/llm_judge_runner/.env
